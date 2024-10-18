@@ -48,6 +48,7 @@ import hu.bme.mit.gamma.lowlevel.xsts.transformation.TransitionMerging;
 import hu.bme.mit.gamma.ocra.transformation.api.Gamma2OcraTransformerSerializer;
 import hu.bme.mit.gamma.property.model.PropertyPackage;
 import hu.bme.mit.gamma.querygenerator.serializer.NuxmvPropertySerializer;
+import hu.bme.mit.gamma.querygenerator.serializer.OcraPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.PromelaPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.PropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.ThetaPropertySerializer;
@@ -803,6 +804,10 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 			Component component = componentReference.getComponent();
 			
 			String fileName = transformation.getFileName().get(0);
+			targetFolderUri = targetFolderUri + File.separator + "ocra";
+			
+			serializeProperties(transformation.getPropertyPackage(), fileName);
+			
 			
 			Gamma2OcraTransformerSerializer gamma2OcraTransformer =
 					new Gamma2OcraTransformerSerializer(component, arguments, targetFolderUri, fileName);
@@ -811,13 +816,28 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 
 		@Override
 		protected PropertySerializer getPropertySerializer() {
-			return null; // Invalid in this case
+			return OcraPropertySerializer.INSTANCE; 
 		}
 
 		@Override
 		protected String getQueryFileExtension() {
-			return null; // Invalid in this case
+			return GammaFileNamer.OCRA_CONTRACT_EXTENSION; 
 		}
+		
+		@Override
+		protected void serializeStringProperties(PropertyPackage propertyPackage, String fileName) {
+			if (propertyPackage != null) {
+				PropertySerializer propertySerializer = getPropertySerializer();
+				
+				//String serializedFormulas = propertySerializer.serializeCommentableStateFormulas(propertyPackage.getFormulas());
+		        String serializedContracts = ((OcraPropertySerializer) propertySerializer).serializeContracts(propertyPackage.getContracts(), propertyPackage.getComponent());
+		        //String combinedSerialization = serializedFormulas + "\n" + serializedContracts;
+
+				fileUtil.saveString(targetFolderUri + File.separator +
+						fileName + "." + getQueryFileExtension(), serializedContracts);
+			}
+		}
+		
 	
 	}
 	
