@@ -873,7 +873,7 @@ class GammaEcoreUtil {
 		val container = object.eContainer
 		val get = container.eGet(containingFeature)
 		if (get instanceof List) {
-			return get.lastOrNull == object
+			return get.last == object
 		}
 		return true
 	}
