@@ -120,7 +120,7 @@ class ThetaQueryGenerator extends AbstractQueryGenerator {
 	}
 	
 	def isDelay(String targetVariableName) {
-		return targetVariableName.equals(Namings.delayVariableName)
+		return targetVariableName == Namings.delayVariableName
 	}
 	
 	// Record

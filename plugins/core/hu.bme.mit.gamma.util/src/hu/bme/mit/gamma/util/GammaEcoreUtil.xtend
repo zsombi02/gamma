@@ -21,7 +21,10 @@ import java.util.logging.Logger
 import org.eclipse.core.resources.ResourcesPlugin
 import org.eclipse.core.runtime.Path
 import org.eclipse.emf.common.util.URI
+import org.eclipse.emf.ecore.EClass
+import org.eclipse.emf.ecore.EFactory
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.ResourceSet
@@ -932,6 +935,19 @@ class GammaEcoreUtil {
 				}
 			}
 		}
+	}
+	
+	def <T extends EObject> T create(Class<T> clazz, EPackage ePackage, EFactory factory) {
+		val className = clazz.simpleName
+		
+		val classifier = ePackage.getEClassifier(className)
+		if (classifier !== null) {
+			if (classifier instanceof EClass) {
+				return factory.create(classifier) as T
+			}
+		}
+		
+		throw new IllegalArgumentException("Not found class: " + clazz)
 	}
 	
 }

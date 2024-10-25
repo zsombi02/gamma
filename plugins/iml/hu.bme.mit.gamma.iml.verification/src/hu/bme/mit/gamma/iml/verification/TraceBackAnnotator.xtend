@@ -81,7 +81,7 @@ class TraceBackAnnotator {
 		synchronized (engineSynchronizationObject) { // Due to the VIATRA engine
 			this.imlQueryGenerator = new ImlQueryGenerator(component)
 		}
-		this.xStsBackAnnotator = new XstsBackAnnotator(imlQueryGenerator, ImlArrayParser.INSTANCE)
+		this.xStsBackAnnotator = new XstsBackAnnotator(imlQueryGenerator, ImlArrayParser.INSTANCE, "_")
 	}
 	
 	def ExecutionTrace synchronizeAndExecute() {

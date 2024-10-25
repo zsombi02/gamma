@@ -1883,7 +1883,7 @@ public class StatechartModelDerivedFeatures extends ActionModelDerivedFeatures {
 			return new SimpleEntry<
 					List<ComponentInstance>, Port>(instances, port);
 		}
-		else if (component instanceof AsynchronousAdapter adapter) {
+		else if (component instanceof AsynchronousAdapter) {
 			return null; // Not bound to statechart port
 		}
 		else if (component instanceof CompositeComponent composite) {
@@ -2126,17 +2126,18 @@ public class StatechartModelDerivedFeatures extends ActionModelDerivedFeatures {
 	}
 	
 	public static List<? extends ComponentInstance> getDerivedComponents(CompositeComponent composite) {
-		if (composite instanceof AbstractSynchronousCompositeComponent) {
-			AbstractSynchronousCompositeComponent synchronousCompositeComponent =
-					(AbstractSynchronousCompositeComponent) composite;
+		if (composite instanceof AbstractSynchronousCompositeComponent synchronousCompositeComponent) {
 			return synchronousCompositeComponent.getComponents();
 		}
-		if (composite instanceof AbstractAsynchronousCompositeComponent) {
-			AbstractAsynchronousCompositeComponent asynchronousCompositeComponent =
-					(AbstractAsynchronousCompositeComponent) composite;
+		if (composite instanceof AbstractAsynchronousCompositeComponent asynchronousCompositeComponent) {
 			return asynchronousCompositeComponent.getComponents();
 		}
 		throw new IllegalArgumentException("Not known type: " + composite);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<ComponentInstance> getModifiableDerivedComponents(CompositeComponent composite) {
+		return (List<ComponentInstance>) getDerivedComponents(composite);
 	}
 	
     public static boolean isTimed(Component component) {
