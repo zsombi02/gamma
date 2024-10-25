@@ -953,9 +953,7 @@ public class XstsDerivedFeatures extends ExpressionModelDerivedFeatures {
 	
 	//
 	
-	public static Map<VariableDeclaration, Entry<Integer, Integer>>
-			getIntegerVariableCodomains(XSTS xSts) {
-		
+	public static Map<VariableDeclaration, Entry<Integer, Integer>> getIntegerVariableCodomains(XSTS xSts) {
 		Triple<Map<VariableDeclaration, List<LiteralExpression>>, Map<VariableDeclaration, List<VariableDeclaration>>,
 			Set<VariableDeclaration>> variableAssignmentGroups = getVariableAssignmentGroups(xSts);
 		
@@ -986,9 +984,7 @@ public class XstsDerivedFeatures extends ExpressionModelDerivedFeatures {
 		return integerVariableMinMax;
 	}
 	
-	public static Map<VariableDeclaration, LiteralExpression>
-			getOneValueVariableCodomains(XSTS xSts) {
-				
+	public static Map<VariableDeclaration, LiteralExpression> getOneValueVariableCodomains(XSTS xSts) {
 		Triple<Map<VariableDeclaration, List<LiteralExpression>>, Map<VariableDeclaration, List<VariableDeclaration>>,
 			Set<VariableDeclaration>> variableAssignmentGroups = getVariableAssignmentGroups(xSts);
 		
@@ -1130,9 +1126,10 @@ public class XstsDerivedFeatures extends ExpressionModelDerivedFeatures {
 		return integerVariableMinMax;
 	}
 	
-	public static Triple<
-			Map<VariableDeclaration, List<LiteralExpression>>, Map<VariableDeclaration, List<VariableDeclaration>>, Set<VariableDeclaration>>
-				getVariableAssignmentGroups(XSTS xSts) {
+	public static Triple<Map<VariableDeclaration, List<LiteralExpression>>,
+				Map<VariableDeclaration, List<VariableDeclaration>>,
+				Set<VariableDeclaration>>
+			getVariableAssignmentGroups(XSTS xSts) {
 		List<AbstractAssignmentAction> abstractAssignments = ecoreUtil.getAllContentsOfType(
 				xSts, AbstractAssignmentAction.class);
 		
@@ -1200,8 +1197,10 @@ public class XstsDerivedFeatures extends ExpressionModelDerivedFeatures {
 			}
 		}
 		
-		return new Triple<Map<VariableDeclaration, List<LiteralExpression>>, Map<VariableDeclaration, List<VariableDeclaration>>, Set<VariableDeclaration>>(
-				integerVariableAssignments, variableVariableAssignments, notIntegerLiteralVariables);
+		return new Triple<Map<VariableDeclaration, List<LiteralExpression>>,
+				Map<VariableDeclaration, List<VariableDeclaration>>,
+				Set<VariableDeclaration>>(
+			integerVariableAssignments, variableVariableAssignments, notIntegerLiteralVariables);
 	}
 	
 }

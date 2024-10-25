@@ -180,7 +180,9 @@ class UnfoldedExecutionTraceBackAnnotator {
 			val message = e.message.trim
 			if (message.startsWith("Not found state")) {
 				logger.warning(message)
-				return expressionModelFactory.createTrueExpression
+				val trueExpression = expressionModelFactory.createTrueExpression
+				dummyAsserts += trueExpression
+				return trueExpression
 			}
 			throw e
 		}
@@ -251,7 +253,7 @@ class UnfoldedExecutionTraceBackAnnotator {
 	
 	//
 	
-	protected def transformExpression(Expression value) {
+	protected def Expression transformExpression(Expression value) {
 		val clonedValue = value.clone
 		
 		// Type declarations
@@ -279,6 +281,7 @@ class UnfoldedExecutionTraceBackAnnotator {
 				val field = fieldAssignment.reference.fieldDeclaration
 				val originalField = recordType.fieldDeclarations.findFirst[it.name == field.name] // TODO getOriginalFieldDeclaration
 				fieldAssignment.reference = originalField.createReferenceExpression
+				fieldAssignment.value = fieldAssignment.value.transformExpression
 			}
 		}
 		

@@ -313,6 +313,7 @@ class XstsBackAnnotator {
 				raiseEventAct.delete
 			}
 		}
+		val asserts = step.asserts
 		val instanceStates = step.instanceStateConfigurations
 		for (instanceState : instanceStates) {
 			// A state is active if all of its ancestor states are active
@@ -323,7 +324,9 @@ class XstsBackAnnotator {
 					ancestorStateReference.region = ancestorState.parentRegion
 					ancestorStateReference.state = ancestorState
 					
-					step.asserts += ancestorStateReference
+					if (!asserts.exists[it.helperEquals(ancestorStateReference)]) { // To avoid duplication
+						asserts += ancestorStateReference
+					}
 				}
 //				instanceState.delete // Was necessary when history literals were not yet introduced
 			}

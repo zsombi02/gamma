@@ -27,6 +27,7 @@ import hu.bme.mit.gamma.expression.model.BooleanLiteralExpression;
 import hu.bme.mit.gamma.expression.model.BooleanTypeDefinition;
 import hu.bme.mit.gamma.expression.model.ClockVariableDeclarationAnnotation;
 import hu.bme.mit.gamma.expression.model.ConstantDeclaration;
+import hu.bme.mit.gamma.expression.model.DecimalLiteralExpression;
 import hu.bme.mit.gamma.expression.model.DecimalTypeDefinition;
 import hu.bme.mit.gamma.expression.model.Declaration;
 import hu.bme.mit.gamma.expression.model.DeclarationReferenceAnnotation;
@@ -54,6 +55,7 @@ import hu.bme.mit.gamma.expression.model.LambdaDeclaration;
 import hu.bme.mit.gamma.expression.model.ParameterDeclaration;
 import hu.bme.mit.gamma.expression.model.ParameterDeclarationAnnotation;
 import hu.bme.mit.gamma.expression.model.ParametricElement;
+import hu.bme.mit.gamma.expression.model.RationalLiteralExpression;
 import hu.bme.mit.gamma.expression.model.RationalTypeDefinition;
 import hu.bme.mit.gamma.expression.model.RecordTypeDefinition;
 import hu.bme.mit.gamma.expression.model.ReferenceExpression;
@@ -534,6 +536,8 @@ public class ExpressionModelDerivedFeatures {
 	public static boolean isNativeLiteral(Expression expression) {
 		return expression instanceof BooleanLiteralExpression ||
 				expression instanceof IntegerLiteralExpression ||
+				expression instanceof RationalLiteralExpression ||
+				expression instanceof DecimalLiteralExpression ||
 				expression instanceof EnumerationLiteralExpression;
 	}
 	
