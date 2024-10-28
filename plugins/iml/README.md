@@ -17,7 +17,7 @@ Gamma supports the specification of _computational tree logic*_ (CTL*) propertie
 
 ### Linear-time temporal logic (LTL)
 
-In logic, linear-time temporal logic (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a system, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. In contrast to other kinds of temporal logics, in LTL, we consider infinite *linear* paths (i.e., every path starting from the initial state of our system) without any possible branching later; hence the name LTL.
+In logic, **linear-time temporal logic** (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a system, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. In contrast to other kinds of temporal logics, in LTL, we consider infinite *linear* paths (i.e., every path starting from the initial state of our system) without any possible branching later; hence the name LTL.
 
 Syntactically, LTL formulas are composed of
 
@@ -31,5 +31,5 @@ The informal semantics of these temporal logic operators considering valid LTL (
 - **F** φ: *Future* - φ eventually has to hold (somewhere on the subsequent path): ![F](https://upload.wikimedia.org/wikipedia/commons/3/37/Ltleventually.svg "F semantics")
 - **G** φ: *Globally* - φ has to hold on the entire subsequent path: ![G](https://upload.wikimedia.org/wikipedia/commons/e/e2/Ltlalways.svg "G semantics")
 - ψ **U** φ: *Until* - ψ has to hold at least until φ becomes true, which must hold in the current or a future state: ![U](https://upload.wikimedia.org/wikipedia/commons/0/0c/Ltluntil.svg "U semantics")
-	- Note that **F** φ ≡ _true_ **U** φ and **F** φ ≡ ¬**F** ¬φ.
+	- Note that **F** φ ≡ _true_ **U** φ, and **F** φ ≡ ¬**G** ¬φ.
 
