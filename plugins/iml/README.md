@@ -13,20 +13,22 @@ This folder contains plugins for the mapping of high-level Gamma (composite) mod
    
 ## Property specification
 
-Gamma supports the specification of _computational tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of  [_linear-time temporal logic_](https://en.wikipedia.org/wiki/Linear_temporal_logic)(LTL) and _computational tree logic_ (CTL); note that LTL and CTL usually are the subsets directly supported by verification back-ends.
+Gamma supports the specification of _computational tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of  [_linear-time temporal logic_](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and _computational tree logic_ (CTL); note that LTL and CTL usually are the subsets directly supported by verification back-ends.
 
 ### Linear-time temporal logic (LTL)
 
-In logic, linear-time temporal logic (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a system, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. LTL formulas are composed of
+In logic, linear-time temporal logic (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a system, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. In contrast to other kinds of temporal logics, in LTL, we consider infinite *linear* paths (i.e., every path starting from the initial state of our system) without any possible branching later; hence the name LTL.
 
-1. a finite set of atomic propositions (AP) e.g., in the context of statecharts, variable and state references,
+Syntactically, LTL formulas are composed of
+
+1. a finite set of atomic propositions (AP) e.g., in the context of statecharts, variable, event and state references,
 1. the logical operators ¬ and ∨, as well as
 1. the unary temporal operators **X**, **F** and **G** and binary operator **U**.
 
 The informal semantics of these temporal logic operators, considering valid LTL subformulas ψ and φ, is as follows:
 
-- **X** φ: *neXt*: φ has to hold in the next state. ![X](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltlnext.svg "X semantics")
-- **F** φ: *Finally*: φ eventually has to hold (somewhere on the subsequent path). [F](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltleventually.svg "F semantics")
-- **G** φ: *Globally*: φ has to hold on the entire subsequent path. [G](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltlalways.svg "G semantics")
-- ψ **U** φ: *Until*: ψ has to hold at least until φ becomes true, which must hold in the current or a future state. [U](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltluntil.svg "U semantics")
+- **X** φ: *neXt*: φ has to hold in the next state. ![X](https://upload.wikimedia.org/wikipedia/commons/1/11/Ltlnext.svg "X semantics")
+- **F** φ: *Future*: φ eventually has to hold (somewhere on the subsequent path). ![F](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltleventually.svg "F semantics")
+- **G** φ: *Globally*: φ has to hold on the entire subsequent path. ![G](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltlalways.svg "G semantics")
+- ψ **U** φ: *Until*: ψ has to hold at least until φ becomes true, which must hold in the current or a future state. ![U](https://en.wikipedia.org/wiki/Linear_temporal_logic#/media/File:Ltluntil.svg "U semantics")
 
