@@ -931,6 +931,31 @@ public class ExpressionUtil {
 		}
 	}
 	
+	public Double toDouble(LiteralExpression literalExpression) {
+		if (literalExpression instanceof IntegerLiteralExpression integer) {
+			return integer.getValue().doubleValue();
+		}
+		else if (literalExpression instanceof DecimalLiteralExpression double_) {
+			return double_.getValue().doubleValue();
+		}
+		else if (literalExpression instanceof RationalLiteralExpression rational) {
+			return rational.getNumerator().doubleValue() / rational.getDenominator().doubleValue();
+		}
+		else if (literalExpression instanceof TrueExpression) {
+			return 1.0;
+		}
+		else if (literalExpression instanceof FalseExpression) {
+			return 0.0;
+		}
+		else if (literalExpression instanceof EnumerationLiteralExpression enumeration) {
+			EnumerationLiteralDefinition enumLiteral = enumeration.getReference();
+			return (double) ecoreUtil.getIndex(enumLiteral);
+		}
+		else {
+			throw new IllegalArgumentException("Not known literal: " + literalExpression);
+		}
+	}
+	
 	public VariableDeclaration createVariableDeclaration(Type type, String name) {
 		return createVariableDeclaration(type, name, null);
 	}
