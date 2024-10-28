@@ -90,7 +90,7 @@ class GammaFileNamer {
 	
 	def String getOcraFileName(String fileName) '''«fileName.extensionlessName».«OCRA_MODEL_EXTENSION»'''
 	
-	def String getImlImlFileName(String fileName) '''«fileName.extensionlessName».«IML_MODEL_EXTENSION»'''
+	def String getImlImandraFileName(String fileName) '''«fileName.extensionlessName».«IML_MODEL_EXTENSION»'''
 	
 	//
 	

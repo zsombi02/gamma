@@ -171,6 +171,8 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 			return fileNamer.getPmlPromelaFileName(plainFileName);
 		case NUXMV:
 			return fileNamer.getSmvNuxmvFileName(plainFileName);
+		case IML:
+			return fileNamer.getImlImandraFileName(plainFileName);
 		default:
 			throw new IllegalArgumentException("Not known language " + analysisLanguage);
 		}

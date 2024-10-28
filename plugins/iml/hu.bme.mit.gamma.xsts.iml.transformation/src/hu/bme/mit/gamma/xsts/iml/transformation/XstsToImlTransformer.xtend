@@ -41,7 +41,7 @@ class XstsToImlTransformer {
 	}
 	
 	def void execute() {
-		val imlFile = new File(targetFolderUri + File.separator + fileName.imlImlFileName)
+		val imlFile = new File(targetFolderUri + File.separator + fileName.imlImandraFileName)
 		val imlString = xSts.serializeIml
 		imlFile.saveString(imlString)
 	}
