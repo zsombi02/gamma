@@ -13,11 +13,11 @@ This folder contains plugins for the mapping of high-level Gamma (composite) mod
    
 ## Property specification
 
-Gamma supports the specification of _computational tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of  [_linear-time temporal logic_](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and _computational tree logic_ (CTL); note that LTL and CTL usually are the subsets directly supported by verification back-ends.
+Gamma supports the specification of _computation tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of [_linear-time temporal logic_](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and [_computation tree logic_](https://en.wikipedia.org/wiki/Computation_tree_logic) (CTL); two temporal logics that are incomparable, i.e., there are properties that can be expressed in one, but not the other. Nevertheless, note that LTL and CTL are the subsets generally supported by verification back-ends due to their decreased complexity.
 
 ### Linear-time temporal logic (LTL)
 
-In logic, **linear-time temporal logic** (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a system, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. In contrast to other kinds of temporal logics, in LTL, we consider infinite *linear* paths (i.e., every path starting from the initial state of our system) without any possible branching later; hence the name LTL.
+In logic, **linear-time temporal logic** (LTL) is a modal temporal logic with modalities referring to time. LTL allows for encoding formulas about *infinite paths* with respect to the behavior of a model, e.g., a condition will eventually be true or a condition will be true until another fact becomes true, etc. In contrast to other kinds of temporal logics, in LTL, we consider infinite *linear* paths (i.e., every path starting from the initial state of our model) without any possible branching later; hence the name LTL.
 
 Syntactically, LTL formulas are composed of
 
@@ -32,4 +32,21 @@ The informal semantics of these temporal logic operators considering valid LTL (
 - **G** φ: *Globally* - φ has to hold on the entire subsequent path: ![G](https://upload.wikimedia.org/wikipedia/commons/e/e2/Ltlalways.svg "G semantics")
 - ψ **U** φ: *Until* - ψ has to hold at least until φ becomes true, which must hold in the current or a future state: ![U](https://upload.wikimedia.org/wikipedia/commons/0/0c/Ltluntil.svg "U semantics")
 	- Note that **F** φ ≡ _true_ **U** φ, and **F** φ ≡ ¬**G** ¬φ.
+
+### Computation tree logic (CTL)
+
+__Computation tree logic__ (CTL) is a branching-time logic, i.e., its model of time is a tree-like structure with branchings (called the *computation tree*) in which the future is not determined; there are different paths in the future, any of which may be an actual path to be realized.
+
+Syntactically, CTL formulas (just like in LTL) are composed of
+
+1. a finite set of atomic propositions (AP) e.g., in the context of statecharts, references to variables, events and states, as well as the _true_ and _false_ boolean literals,
+1. the logical operators ¬ and ∨, as well as
+1. the unary path-specific temporal operators **X**, **F** and **G**, and binary path-specific temporal operator **U**.
+1. In addition to LTL, CTL proposes quantifiers over paths: **E** (existential) and **A** (universal).
+
+The informal semantics of the above-mentioned path-specific temporal logic operators is the same as for LTL; the difference is that CTL supports the **A** and **E** quantifiers that can be interpreted in every state during the execution of the model of interest and quantify the paths starting from these particular states. In contrast, LTL implicitly quantifies _universally_ over paths starting from the initial state (implicit **A** quantifier at the beginning of a formula specification).
+
+In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator. In contrast, CTL* supports the free mixing of the quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
+
+![CTL](https://www.researchgate.net/profile/Salam-Hajjar/publication/257343964/figure/fig6/AS:669510679932930@1536635193106/CTL-tree-logic-1_W640.jpg "CTL semantics")
 
