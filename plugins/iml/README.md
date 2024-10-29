@@ -13,7 +13,7 @@ This folder contains plugins for the mapping of high-level Gamma (composite) mod
    
 ## Property specification
 
-Gamma supports the specification of _computation tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of [linear-time temporal logic](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and [computation tree logic](https://en.wikipedia.org/wiki/Computation_tree_logic) (CTL); two temporal logics that are incomparable, i.e., there are properties that can be expressed in one, but not the other. Nevertheless, note that LTL and CTL are the subsets generally supported by verification back-ends due to their decreased complexity.
+Gamma supports the specification of [computation tree logic*](https://en.wikipedia.org/wiki/CTL*) (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of [linear-time temporal logic](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and [computation tree logic](https://en.wikipedia.org/wiki/Computation_tree_logic) (CTL); two temporal logics that are incomparable, i.e., there are properties that can be expressed in one, but not the other. Nevertheless, note that LTL and CTL are the subsets generally supported by verification back-ends due to their decreased complexity.
 
 ### Linear-time temporal logic (LTL)
 
@@ -48,5 +48,5 @@ The informal semantics of the above-mentioned path-specific temporal logic opera
 
 In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator. In contrast, CTL* supports the free mixing of quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
 
-![CTL](tutorial/docs/CTL.jpg "CTL semantics")
+![CTL](../../tutorial/docs/CTL.jpg "CTL semantics")
 
