@@ -28,7 +28,7 @@ public class Application implements IApplication {
 	
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
-		final Map<?, ?> args = context.getArguments();
+		final Map<?, ?> args = context.getArguments(); // ./eclipse.exe -data ./ws gamma info .../Genmodelfile.ggen
 		final String[] appArgs = (String[]) args.get(IApplicationContext.APPLICATION_ARGS);
 		
 		Level level = Level.INFO;
