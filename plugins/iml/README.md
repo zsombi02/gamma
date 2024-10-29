@@ -46,7 +46,27 @@ Syntactically, CTL formulas (just like in LTL) are composed of
 
 The informal semantics of the above-mentioned path-specific temporal logic operators is the same as for LTL; the difference is that CTL supports the **A** and **E** quantifiers that can be interpreted in every state during the execution of the model of interest and quantify the paths starting from these particular states. In contrast, LTL implicitly quantifies _universally_ over paths starting from the initial state (implicit **A** quantifier at the beginning of a formula specification).
 
-In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator. In contrast, CTL* supports the free mixing of quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
+In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator, for instance, **AG**. In contrast, CTL* supports the free mixing of quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
 
-![CTL](../../tutorial/docs/CTL.jpg "CTL semantics")
+![CTL](../../tutorial/docs/CTL.jpg "CTL operators' semantics")
+
+### Mapping GPL properties into IML
+
+The Gamma-IML integration supports the mapping of a subset of LTL properties specified in GPL. The mapping exploits the characteristics of the derived IML models, i.e., that the behvior is captured using three functions:
+
+- *init*: the *init* function returns the initial state of the model;
+- *run_cycle r e*: the *run_cycle* function executes the model a single time (single cycle/step), based on its current state (captured by _r_) and the single incoming input (_e_);
+- _run r e list_: the _run_ function, in a **recursive** manner, calls the *run_cycle* method based on the initial model state (captured by _r_) and a list of incoming inputs (_e list_) zero or more times (size of _e list_).
+
+Accordingly, the following LTL properties (using a valid nested LTL (sub)formula φ) can be mapped into IML as follows:
+
+- *X φ: verify(fun e -> let r = init in run_cycle r e in φ)*;
+- *G φ: verify(fun e -> let r = init in run r e in φ)*;
+- *F φ: verify(fun e -> let r = init in not(run r e in not(φ)))* (note that **F** φ ≡ ¬**G** ¬φ);
+- the *U** operator is not yet supported.
+
+Note that the mapping would support the mapping of (a subset of) CTL* properties if Imandra allowed the **nesting** of *verify* and *instance* calls (as it would allow for the quantification of inputs and thus, paths from specific states during execution). For instance, _A G (E X φ)_ could be mapped to _verify(fun e -> let r = init in run r e in (instance(fun e -> run_cycle r e in φ)))_.
+
+
+
 
