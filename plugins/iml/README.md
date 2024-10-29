@@ -52,7 +52,7 @@ In CTL, the quantifiers over paths (**A** and **E**) and the path-specific tempo
 
 ### Mapping GPL properties into IML
 
-The Gamma-IML integration supports the mapping of a subset of LTL properties specified in GPL. The mapping exploits the characteristics of the derived IML models, i.e., that the behvior is captured using three functions:
+The Gamma-IML integration supports the mapping of a subset of LTL properties specified in GPL. The mapping exploits the characteristics of the derived IML models, i.e., that the behavior is captured using three functions:
 
 - *init*: the *init* function returns the initial state of the model;
 - *run_cycle r e*: the *run_cycle* function executes the model a single time (single cycle/step), based on its current state (captured by _r_) and the single incoming input (_e_);
@@ -60,12 +60,12 @@ The Gamma-IML integration supports the mapping of a subset of LTL properties spe
 
 Accordingly, the following LTL properties (using a valid nested LTL (sub)formula φ) can be mapped into IML as follows:
 
-- *X φ: verify(fun e -> let r = init in run_cycle r e in φ)*;
-- *G φ: verify(fun e -> let r = init in run r e in φ)*;
-- *F φ: verify(fun e -> let r = init in not(run r e in not(φ)))* (note that **F** φ ≡ ¬**G** ¬φ);
-- the *U** operator is not yet supported.
+- *X φ* ≡ *verify(fun e -> let r = init in run_cycle r e in φ)*;
+- *G φ* ≡ *verify(fun e -> let r = init in run r e in φ)*;
+- *F φ* ≡ *verify(fun e -> let r = init in not(run r e in not(φ)))* (note that **F** φ ≡ ¬**G** ¬φ);
+- the **U** operator is not yet supported.
 
-Note that the mapping would support the mapping of (a subset of) CTL* properties if Imandra allowed the **nesting** of *verify* and *instance* calls (as it would allow for the quantification of inputs and thus, paths from specific states during execution). For instance, _A G (E X φ)_ could be mapped to _verify(fun e -> let r = init in run r e in (instance(fun e -> run_cycle r e in φ)))_.
+Note that the mapping would support the mapping of (a subset of) CTL* properties if Imandra allowed for the **nesting** of *verify* (**A** quantifier) and *instance* (**E** quantifier) calls as it would allow for the quantification of inputs and thus, (from a computation tree's perspective) paths from specific states during execution. For instance, _A G (E X φ)_ could be mapped to _verify(fun e -> let r = init in run r e in (instance(fun e -> run_cycle r e in φ)))_.
 
 
 
