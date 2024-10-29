@@ -13,7 +13,7 @@ This folder contains plugins for the mapping of high-level Gamma (composite) mod
    
 ## Property specification
 
-Gamma supports the specification of _computation tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of [_linear-time temporal logic_](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and [_computation tree logic_](https://en.wikipedia.org/wiki/Computation_tree_logic) (CTL); two temporal logics that are incomparable, i.e., there are properties that can be expressed in one, but not the other. Nevertheless, note that LTL and CTL are the subsets generally supported by verification back-ends due to their decreased complexity.
+Gamma supports the specification of _computation tree logic*_ (CTL*) properties in the Gamma Property Language (GPL). CTL* can be considered as a superset of [linear-time temporal logic](https://en.wikipedia.org/wiki/Linear_temporal_logic) (LTL) and [computation tree logic](https://en.wikipedia.org/wiki/Computation_tree_logic) (CTL); two temporal logics that are incomparable, i.e., there are properties that can be expressed in one, but not the other. Nevertheless, note that LTL and CTL are the subsets generally supported by verification back-ends due to their decreased complexity.
 
 ### Linear-time temporal logic (LTL)
 
@@ -46,7 +46,7 @@ Syntactically, CTL formulas (just like in LTL) are composed of
 
 The informal semantics of the above-mentioned path-specific temporal logic operators is the same as for LTL; the difference is that CTL supports the **A** and **E** quantifiers that can be interpreted in every state during the execution of the model of interest and quantify the paths starting from these particular states. In contrast, LTL implicitly quantifies _universally_ over paths starting from the initial state (implicit **A** quantifier at the beginning of a formula specification).
 
-In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator. In contrast, CTL* supports the free mixing of the quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
+In CTL, the quantifiers over paths (**A** and **E**) and the path-specific temporal operators (**X**, **F**, **G** and **U**) are grouped in pairs: one quantifier followed by a temporal operator. In contrast, CTL* supports the free mixing of quantifiers and temporal operators (recall the (real) subset relation between CTL and CTL*). The semantics of CTL operators are depicted as follows.
 
-![CTL](https://www.researchgate.net/profile/Salam-Hajjar/publication/257343964/figure/fig6/AS:669510679932930@1536635193106/CTL-tree-logic-1_W640.jpg "CTL semantics")
+![CTL](tutorial/docs/CTL.jpg "CTL semantics")
 
