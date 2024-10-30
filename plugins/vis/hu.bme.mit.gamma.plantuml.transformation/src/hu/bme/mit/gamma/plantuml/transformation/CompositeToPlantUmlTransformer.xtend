@@ -92,6 +92,9 @@ class CompositeToPlantUmlTransformer {
 		else if (composite instanceof ScheduledAsynchronousCompositeComponent) {
 			return "scheduled-asynchronous"
 		}
+		else {
+			return composite.class.name
+		}
 	}
 
 	def String execute() {
