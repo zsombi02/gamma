@@ -30,6 +30,8 @@ class NuxmvVerifier extends AbstractVerifier {
 	public static final String NUXMV_SETUP_UNTIMED = "go_msat"
 	public static final String NUXMV_SETUP_TIMED = /*"time_setup" + System.lineSeparator +*/ "go_time"
 	
+	public static final String NUXMV_TEMPORARY_COMMAND_FOLDER = ".nuXmv"
+	
 	//
 	protected final static extension FileUtil fileUtil = FileUtil.INSTANCE
 	//
@@ -86,8 +88,8 @@ class NuxmvVerifier extends AbstractVerifier {
 		val adaptedQuery = query.adaptQuery
 		val modelCheckingCommand = '''«parameters» "«adaptedQuery»"''' // "parameters" contains the -p/-L flag
 		// Creating the configuration file
-		val parentFile = modelFile.parent
-		val commandFile = new File(parentFile + File.separator + '''.nuXmv-commands-«Thread.currentThread.name».cmd''')
+		val parentFile = modelFile.parent + File.separator + NUXMV_TEMPORARY_COMMAND_FOLDER
+		val commandFile = new File(parentFile, '''.nuXmv-commands-«Thread.currentThread.name».cmd''')
 		commandFile.deleteOnExit
 		
 		val serializedCommand = '''
@@ -165,7 +167,7 @@ class NuxmvVerifier extends AbstractVerifier {
 	//
 	
 	protected def convertToInvariant(File modelFile, String query, String argument) {
-		val parentFile = modelFile.parent
+		val parentFile = modelFile.parent + File.separator + NUXMV_TEMPORARY_COMMAND_FOLDER
 		val isTimedModel = modelFile.timedModel
 		
 		val commandExtension = argument.commandLineArgumentExtension
@@ -184,7 +186,7 @@ class NuxmvVerifier extends AbstractVerifier {
 				quit
 			'''
 			
-			val commandFile = new File(parentFile + File.separator + '''.nuXmv-discretization-«Thread.currentThread.name».cmd''')
+			val commandFile = new File(parentFile, '''.nuXmv-discretization-«Thread.currentThread.name».cmd''')
 			fileUtil.saveString(commandFile, discretizationCommand)
 			commandFile.deleteOnExit
 			
@@ -197,7 +199,7 @@ class NuxmvVerifier extends AbstractVerifier {
 
 		val checkableModel = isTimedModel ? discretizedModelPath : modelFile
 		//
-		val commandFile = new File(parentFile + File.separator + '''.nuXmv-invar-«Thread.currentThread.name».cmd''')
+		val commandFile = new File(parentFile, '''.nuXmv-invar-«Thread.currentThread.name».cmd''')
 		commandFile.deleteOnExit
 		
 		val serializedCommand = '''

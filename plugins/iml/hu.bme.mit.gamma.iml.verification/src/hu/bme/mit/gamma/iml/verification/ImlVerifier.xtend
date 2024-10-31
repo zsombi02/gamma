@@ -19,6 +19,7 @@ import java.io.File
 import java.util.Scanner
 
 class ImlVerifier extends AbstractVerifier {
+	public static final String IMANDRA_TEMPORARY_COMMAND_FOLDER = ".imandra"
 	//
 	protected final static extension FileUtil fileUtil = FileUtil.INSTANCE
 	//
@@ -50,8 +51,8 @@ class ImlVerifier extends AbstractVerifier {
 		val command = query.substring(0, query.indexOf("("))
 		val commandelssQuery = query.substring(command.length)
 		
-		val parentFile = modelFile.parentFile
-		val pythonFile = new File(parentFile + File.separator + '''.imandra-commands-«Thread.currentThread.name».py''')
+		val parentFile = modelFile.parentFile + File.separator + IMANDRA_TEMPORARY_COMMAND_FOLDER
+		val pythonFile = new File(parentFile, '''.imandra-commands-«Thread.currentThread.name».py''')
 		pythonFile.deleteOnExit
 		
 		val serializedPython = getTracedCode(modelString, command, parameters, commandelssQuery)
@@ -70,7 +71,8 @@ class ImlVerifier extends AbstractVerifier {
 			
 			// Reading the result of the command
 			resultReader = new Scanner(process.inputReader)
-			errorReader = new ScannerLogger(new Scanner(process.errorReader), "ValueError: ",  true)
+			errorReader = new ScannerLogger(
+					new Scanner(process.errorReader), "ValueError: ",  true)
 			errorReader.start
 			
 			result = ThreeStateBoolean.UNDEF
