@@ -29,6 +29,8 @@ class ThetaVerifier extends AbstractVerifier {
 	
 	final String SAFE = "SafetyResult Safe"
 	final String UNSAFE = "SafetyResult Unsafe"
+	
+	final String THETA_TEMPORARY_CEX_FOLDER = ".theta"
 	//
 	
 	override Result verifyQuery(Object traceability, String parameters, File modelFile, String queries) {
@@ -146,8 +148,8 @@ class ThetaVerifier extends AbstractVerifier {
 	
 	def getTraceFile(File modelFile) {
 		// Thread.currentThread.name is needed to prevent race conditions
-		return modelFile.parent + File.separator + modelFile.extensionlessName.toHiddenFileName +
-			"-" + Thread.currentThread.name + ".cex"
+		return modelFile.parent + File.separator + THETA_TEMPORARY_CEX_FOLDER + File.separator +
+				modelFile.extensionlessName + "-" + Thread.currentThread.name + ".cex"
 	}
 	
 	override getHelpCommand() {
