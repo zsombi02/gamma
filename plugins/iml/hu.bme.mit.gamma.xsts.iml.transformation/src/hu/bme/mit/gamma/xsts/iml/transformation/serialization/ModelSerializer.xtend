@@ -58,7 +58,7 @@ class ModelSerializer {
 						.map[it.variableDeclaration]]
 						.flatten
 		
-		val envHavocs = inEventAction
+		val envHavocs = inEventAction // Only this action is considered; thus, havocs in other actions are not (yet) supported
 						.getSelfAndAllContentsOfType(HavocAction)
 						
 		val choices = xSts.getAllContentsOfType(NonDeterministicAction)
