@@ -51,11 +51,15 @@ class ImlVerifier extends AbstractVerifier {
 		val command = query.substring(0, query.indexOf("("))
 		val commandelssQuery = query.substring(command.length)
 		
+		val arguments = parameters.parseArguments
+		val argument = arguments.key
+		val postArgument = arguments.value
+		
 		val parentFile = modelFile.parentFile + File.separator + IMANDRA_TEMPORARY_COMMAND_FOLDER
 		val pythonFile = new File(parentFile, '''.imandra-commands-«Thread.currentThread.name».py''')
 		pythonFile.deleteOnExit
 		
-		val serializedPython = getTracedCode(modelString, command, parameters, commandelssQuery)
+		val serializedPython = modelString.getTracedCode(command, argument, postArgument, commandelssQuery)
 		fileUtil.saveString(pythonFile, serializedPython)
 		
 		// python3 .\imandra-test.py
@@ -111,7 +115,8 @@ class ImlVerifier extends AbstractVerifier {
 			print(result)
 	'''
 	
-	protected def String getTracedCode(String modelString, String command, String arguments, String commandlessQuery) '''
+	protected def String getTracedCode(String modelString, String command,
+			String arguments, String postArguments, String commandlessQuery) '''
 		import imandra.auth
 		import imandra.instance
 		import imandra_http_api_client
@@ -132,7 +137,7 @@ class ImlVerifier extends AbstractVerifier {
 			«modelString»;;
 			#trace trans;;
 			init;;
-			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»);; (* The trace is automatically printed *)
+			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
 		"""
 		# run init CX.e # We do not have to replay this trace (e due to 'fun e')
 		
@@ -163,6 +168,25 @@ class ImlVerifier extends AbstractVerifier {
 		
 		imandra.instance.delete(auth, instance['new_pod']['id'])
 	'''
+	
+	protected def parseArguments(String arguments) {
+		val argument = new StringBuilder
+		val postArgument = new StringBuilder
+		
+		val splits = arguments.split("\\s") // Split based on any whitespace
+		for (split : splits) {
+			if (split.startsWith("[") && split.endsWith("]")) { // [@@auto]
+				postArgument.append(split + " ")
+			}
+			else {
+				argument.append(split + " ")
+			}
+		}
+		
+		return argument.toString.trim -> postArgument.toString.trim
+	}
+	
+	//
 	
 	override getTemporaryQueryFilename(File modelFile) {
 		return "." + modelFile.extensionlessName + ".i"
