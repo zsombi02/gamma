@@ -49,6 +49,8 @@ import hu.bme.mit.gamma.expression.model.FalseExpression;
 import hu.bme.mit.gamma.expression.model.FieldAssignment;
 import hu.bme.mit.gamma.expression.model.FieldDeclaration;
 import hu.bme.mit.gamma.expression.model.FieldReferenceExpression;
+import hu.bme.mit.gamma.expression.model.FunctionAccessExpression;
+import hu.bme.mit.gamma.expression.model.FunctionDeclaration;
 import hu.bme.mit.gamma.expression.model.GreaterEqualExpression;
 import hu.bme.mit.gamma.expression.model.GreaterExpression;
 import hu.bme.mit.gamma.expression.model.IfThenElseExpression;
@@ -1100,6 +1102,14 @@ public class ExpressionUtil {
 		//
 		
 		return first;
+	}
+	
+	public FunctionAccessExpression createFunctionAccessExpression(FunctionDeclaration function, List<? extends Expression> arguments) {
+		DirectReferenceExpression reference = createReferenceExpression(function);
+		FunctionAccessExpression callExpression = factory.createFunctionAccessExpression();
+		callExpression.setOperand(reference);
+		callExpression.getArguments().addAll(arguments);
+		return callExpression;
 	}
 	
 	public RecordAccessExpression createRecordAccessExpression(Declaration declaration, FieldDeclaration field) {
