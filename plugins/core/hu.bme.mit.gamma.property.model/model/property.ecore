@@ -15,13 +15,15 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="PathFormula" abstract="true"/>
   <eClassifiers xsi:type="ecore:EClass" name="StateFormula" abstract="true" eSuperTypes="#//PathFormula"/>
-  <eClassifiers xsi:type="ecore:EClass" name="UnaryOperandPathFormula" eSuperTypes="#//PathFormula">
+  <eClassifiers xsi:type="ecore:EClass" name="TemporalPathFormula" abstract="true"
+      eSuperTypes="#//PathFormula"/>
+  <eClassifiers xsi:type="ecore:EClass" name="UnaryOperandPathFormula" eSuperTypes="#//TemporalPathFormula">
     <eStructuralFeatures xsi:type="ecore:EReference" name="operand" lowerBound="1"
         eType="#//PathFormula" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="operator" lowerBound="1"
         eType="#//UnaryPathOperator"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="BinaryOperandPathFormula" eSuperTypes="#//PathFormula">
+  <eClassifiers xsi:type="ecore:EClass" name="BinaryOperandPathFormula" eSuperTypes="#//TemporalPathFormula">
     <eStructuralFeatures xsi:type="ecore:EReference" name="leftOperand" lowerBound="1"
         eType="#//PathFormula" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="rightOperand" lowerBound="1"

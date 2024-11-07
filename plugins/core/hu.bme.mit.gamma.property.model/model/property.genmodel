@@ -46,6 +46,7 @@
     </genClasses>
     <genClasses ecoreClass="property.ecore#//PathFormula"/>
     <genClasses ecoreClass="property.ecore#//StateFormula"/>
+    <genClasses image="false" ecoreClass="property.ecore#//TemporalPathFormula"/>
     <genClasses ecoreClass="property.ecore#//UnaryOperandPathFormula">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference property.ecore#//UnaryOperandPathFormula/operand"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute property.ecore#//UnaryOperandPathFormula/operator"/>
