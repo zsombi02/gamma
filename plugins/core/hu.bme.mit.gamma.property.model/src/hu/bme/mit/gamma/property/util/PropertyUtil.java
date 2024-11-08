@@ -229,13 +229,14 @@ public class PropertyUtil extends StatechartUtil {
 		throw new IllegalArgumentException("Not known formula: " + formula);
 	}
 	
-	public PathFormula createNegationNormalForm(PathFormula formula) {
-		PathFormula clonedFormula = ecoreUtil.clone(formula);
+	@SuppressWarnings("unchecked")
+	public <T extends PathFormula> T createNegationNormalForm(T formula) {
+		T clonedFormula = ecoreUtil.clone(formula);
 		if (clonedFormula instanceof UnaryOperandLogicalPathFormula _formula) {
 			assert _formula.getOperator() == UnaryLogicalOperator.NOT;
 			PathFormula operand = _formula.getOperand();
 			
-			clonedFormula = createNegationForm(operand); // Swapping the cloned formula for additional processing
+			clonedFormula = (T) createNegationForm(operand); // Swapping the cloned formula for additional processing
 		}
 		// Processing contained (negated) subformulas
 		for (PathFormula subformula : ecoreUtil.getContentsOfType(clonedFormula, PathFormula.class)) {

@@ -58,12 +58,13 @@ The Gamma-IML integration supports the mapping of a subset of LTL properties spe
 - *run_cycle r e*: the *run_cycle* function executes the model a single time (single cycle/step), based on its current state (captured by _r_) and the single incoming input (_e_);
 - _run r e list_: the _run_ function, in a **recursive** manner, calls the *run_cycle* method based on the initial model state (captured by _r_) and a list of incoming inputs (_e list_) zero or more times (size of _e list_).
 
-Accordingly, the following LTL properties (using a valid nested LTL (sub)formula φ) can be mapped into IML as follows:
+Accordingly, the following LTL properties (using a valid nested LTL (sub)formulas ψ and φ) can be mapped into IML as follows:
 
-- *X φ* ≡ *verify(fun e -> let r = init in run_cycle r e in φ)*;
-- *G φ* ≡ *verify(fun e -> let r = init in run r e in φ)*;
-- *F φ* ≡ *verify(fun e -> let r = init in not(run r e in not(φ)))* (note that **F** φ ≡ ¬**G** ¬φ);
-- the **U** operator is not yet supported.
+- *X φ* ≡ *verify(fun e -> let r = run_cycle init e in φ)*;
+- *G φ* ≡ *verify(fun e -> let r = run init e in φ)*;
+- *F φ* is not supported (note that **F** φ ≡ ¬**G** ¬φ, but it works only for infinite paths or with an *instance* call (**E** quantifier));
+- *ψ R φ* ≡ *verify(fun e -> let r = run init e in φ || exists_prefix init e (fun r -> ψ && φ)* (i.e., φ holds in every state (globally), or there exists a previous state where both ψ and φ hold);
+- *ψ U φ* is not supported (note that ψ **U** φ ≡ ¬(¬ψ **R** ¬φ), but it works only for infinite paths or with an *instance* call (**E** quantifier)).
 
 Note that the mapping would support the mapping of (a subset of) CTL* properties if Imandra allowed for the **nesting** of *verify* (**A** quantifier) and *instance* (**E** quantifier) calls as it would allow for the quantification of inputs and thus, (from a computation tree's perspective) paths from specific states during execution. For instance, _A G (E X φ)_ could be mapped to _verify(fun e -> let r = init in run r e in (instance(fun e -> run_cycle r e in φ)))_.
 

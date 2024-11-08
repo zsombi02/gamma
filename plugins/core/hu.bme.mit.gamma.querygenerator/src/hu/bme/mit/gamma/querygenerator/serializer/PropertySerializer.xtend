@@ -16,6 +16,7 @@ import hu.bme.mit.gamma.property.model.StateFormula
 import hu.bme.mit.gamma.property.util.PropertyUtil
 import hu.bme.mit.gamma.util.GammaEcoreUtil
 import java.util.Collection
+import java.util.logging.Logger
 
 abstract class PropertySerializer {
 	//
@@ -23,6 +24,7 @@ abstract class PropertySerializer {
 	//
 	protected final extension PropertyUtil util = PropertyUtil.INSTANCE
 	protected final extension GammaEcoreUtil ecoreUtil = GammaEcoreUtil.INSTANCE
+	protected final Logger logger = Logger.getLogger("GammaLogger")
 	//
 	new(PropertyExpressionSerializer serializer) {
 		this.serializer = serializer

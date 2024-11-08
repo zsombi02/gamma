@@ -13,10 +13,12 @@ package hu.bme.mit.gamma.querygenerator.serializer
 import hu.bme.mit.gamma.expression.model.Comment
 import hu.bme.mit.gamma.property.model.AtomicFormula
 import hu.bme.mit.gamma.property.model.BinaryLogicalOperator
+import hu.bme.mit.gamma.property.model.BinaryOperandPathFormula
 import hu.bme.mit.gamma.property.model.PathFormula
 import hu.bme.mit.gamma.property.model.PathQuantifier
 import hu.bme.mit.gamma.property.model.QuantifiedFormula
 import hu.bme.mit.gamma.property.model.StateFormula
+import hu.bme.mit.gamma.property.model.TemporalPathFormula
 import hu.bme.mit.gamma.property.model.UnaryLogicalOperator
 import hu.bme.mit.gamma.property.model.UnaryOperandPathFormula
 import hu.bme.mit.gamma.property.model.UnaryPathOperator
@@ -35,16 +37,25 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	//
 	
 	protected override isValidFormula(StateFormula formula) {
-		// Note that this translation supports LTL with FINITE traces
-		return formula.ltl && !formula.containsBinaryPathOperators
-		 // No CTL* (nesting of instance/verify) yet // No U, R or B yet
+		// Note that this translation supports LTL with FINITE traces (no loops at the end)
+		// Also, the formula has to be in NNF while
+		// under A, we can have X, F and U, and
+		// under E, we can have X, G and R
+		return formula.ltl // TODO
 	}
 	
 	override serialize(Comment comment) '''(* «comment.comment» *)'''
 	
 	override serialize(StateFormula formula) {
-		val serializedFormula = formula.serializeFormula
-		checkArgument(formula.validFormula, serializedFormula)
+		val nnfFormula = formula.createNegationNormalForm
+		
+		val serializedFormula = nnfFormula.serializeFormula
+		
+		if (!formula.helperEquals(nnfFormula)) {
+			logger.info("Transformed property into negation normal form (NNF): " + serializedFormula)
+		}
+		checkArgument(nnfFormula.validFormula, serializedFormula)
+		
 		return serializedFormula
 	}
 	
@@ -58,12 +69,8 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		val quantifier = formula.quantifier // A or E
 		val imandraCall = (quantifier == PathQuantifier.FORALL) ? "verify" : "instance"
 		
-		// LTL can be mapped in a special way: after A, only G and X can be contained, after E, only F and X
-		val tailoredFormula = formula.tailorFormula
-		//
-		
-		val pathFormula = tailoredFormula.formula
-		val inputtableFormulas = tailoredFormula.relevantUnaryOperandPathFormulas
+		val pathFormula = formula.formula
+		val inputtableFormulas = formula.relevantTemporalPathFormulas
 		return '''«imandraCall»(fun«FOR e : inputtableFormulas» «e.inputId»«ENDFOR» -> let «
 				recordId» = «Namings.INIT_FUNCTION_IDENTIFIER» in «pathFormula.serializeFormula»)'''
 	}
@@ -73,6 +80,26 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		val functionName = operator.functionName
 		val operand = formula.operand
 		return '''let «recordId» = «functionName» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+	}
+	
+	protected override dispatch String serializeFormula(BinaryOperandPathFormula formula) {
+		val operator = formula.operator
+		val lhsOperand = formula.leftOperand
+		val rhsOperand = formula.rightOperand
+		switch (operator) {
+			case UNTIL: { // Only under E
+				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+						formula.inputId» in «rhsOperand.serializeFormula») && («
+							forallPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula»)))'''
+			}
+			case RELEASE: { // Only under A
+				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+						formula.inputId» in «rhsOperand.serializeFormula») || («
+							existsPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)))'''
+			}
+			default:
+				throw new IllegalArgumentException("Not supported operator: " + operator)
+		}
 	}
 	
 	//
@@ -96,36 +123,37 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	
 	//
 	
-	protected def tailorFormula(QuantifiedFormula formula) {
-		if (formula instanceof QuantifiedFormula) {
-			val clonedFormula = formula.clone // So no side-effect
-			val pathFormulas = clonedFormula.relevantUnaryOperandPathFormulas
-			val quantifier = clonedFormula.quantifier
-			//
-			if (quantifier == PathQuantifier.EXISTS) { // E
-				val globals = pathFormulas.filter[it.operator == UnaryPathOperator.GLOBAL]
-				for (global : globals) { // G cannot be after E, but: G p === !F!p
-					global.changeToDual
-				}
-				return clonedFormula
-			}
-			else { // A
-				val futures = pathFormulas.filter[it.operator == UnaryPathOperator.FUTURE]
-				for (future : futures) { // F cannot be after A, but: F p === !G!p
-					future.changeToDual
-				}
-				return clonedFormula
-			}
-		}
-		return formula
-	}
+//	protected def tailorFormula(QuantifiedFormula formula) {
+//		if (formula instanceof QuantifiedFormula) {
+//			val clonedFormula = formula.clone // So no side-effect
+//			val pathFormulas = clonedFormula.relevantTemporalPathFormulas
+//			val unaryOperandPathFormulas = pathFormulas.filter(UnaryOperandPathFormula)
+//			val quantifier = clonedFormula.quantifier
+//			//
+//			if (quantifier == PathQuantifier.EXISTS) { // E
+//				val globals = unaryOperandPathFormulas.filter[it.operator == UnaryPathOperator.GLOBAL]
+//				for (global : globals) { // G cannot be after E, but: G p === !F!p
+//					global.changeToDual
+//				}
+//				return clonedFormula
+//			}
+//			else { // A
+//				val futures = unaryOperandPathFormulas.filter[it.operator == UnaryPathOperator.FUTURE]
+//				for (future : futures) { // F cannot be after A, but: F p === !G!p
+//					future.changeToDual
+//				}
+//				return clonedFormula
+//			}
+//		}
+//		return formula
+//	}
 	
 	//
 	
-	protected def getRelevantUnaryOperandPathFormulas(PathFormula formula) {
-		// We consider levels of F, G and X operators in-between A and E quantifiers
+	protected def getRelevantTemporalPathFormulas(PathFormula formula) {
+		// We consider levels of F, G, X and U operators in-between A and E quantifiers
 		// to support multiple level of A/E nesting (CTL*)
-		return formula.getAllContentsOfTypeBetweenTypes(QuantifiedFormula, UnaryOperandPathFormula)
+		return formula.getAllContentsOfTypeBetweenTypes(QuantifiedFormula, TemporalPathFormula)
 	}
 	
 	protected def getRecordId() {
@@ -136,12 +164,12 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		return "e"
 	}
 	
-	protected def getIndex(UnaryOperandPathFormula formula) {
-		val unaryOperandPathFormulas = formula.relevantUnaryOperandPathFormulas
+	protected def getIndex(TemporalPathFormula formula) {
+		val unaryOperandPathFormulas = formula.relevantTemporalPathFormulas
 		return unaryOperandPathFormulas.indexOf(formula)
 	}
 	
-	protected def getInputId(UnaryOperandPathFormula formula) {
+	protected def getInputId(TemporalPathFormula formula) {
 		return inputId + formula.index
 	}
 	
@@ -153,5 +181,8 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 			default: throw new IllegalArgumentException("Not known operator: " + operator)
 		}
 	}
+	
+	protected def getForallPrefixName() '''forall_prefix'''
+	protected def getExistsPrefixName() '''exists_prefix'''
 	
 }

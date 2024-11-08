@@ -135,6 +135,7 @@ class ImlVerifier extends AbstractVerifier {
 		
 		src = """
 			«modelString»;;
+			«commandlessQuery.utilityMethods»;;
 			#trace trans;;
 			init;;
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
@@ -168,6 +169,32 @@ class ImlVerifier extends AbstractVerifier {
 		
 		imandra.instance.delete(auth, instance['new_pod']['id'])
 	'''
+	
+	protected def getUtilityMethods(String query) { // TODO move to Prop-ser
+		val builder = new StringBuilder
+		if (query.contains(" exists_prefix ")) { // TODO check
+			builder.append('''
+				let rec exists_prefix r e p =
+					match e with
+					| [] -> false
+					| e_p @ (_ :: []) -> # Does not work
+						p (run r e_p) ||
+						exists_prefix r e_p p
+			''')
+		}
+		if (query.contains(" forall_prefix ")) {
+			builder.append('''
+				let rec forall_prefix r e p = # Last element of e is not considered (strict prefix)
+					p r && # Checking starts from the beginning
+					match e with
+					| [] | [_] | -> true
+					| hd :: tl ->
+						let r = run_cycle r hd in
+						forall_prefix r tl p
+			''')
+		}
+		return builder.toString
+	}
 	
 	protected def parseArguments(String arguments) {
 		val argument = new StringBuilder

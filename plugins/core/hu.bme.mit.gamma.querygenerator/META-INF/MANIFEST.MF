@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: UPPAAL Query Generator
+Bundle-Name: Gamma Property Serializer
 Bundle-SymbolicName: hu.bme.mit.gamma.querygenerator;singleton:=true
 Bundle-Version: 2.11.0.qualifier
 Bundle-Vendor: BME-FTSRG
