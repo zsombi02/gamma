@@ -13,7 +13,9 @@ package hu.bme.mit.gamma.property.derivedfeatures;
 import java.util.List;
 
 import hu.bme.mit.gamma.property.model.AtomicFormula;
+import hu.bme.mit.gamma.property.model.BinaryLogicalOperator;
 import hu.bme.mit.gamma.property.model.BinaryOperandPathFormula;
+import hu.bme.mit.gamma.property.model.BinaryPathOperator;
 import hu.bme.mit.gamma.property.model.CommentableStateFormula;
 import hu.bme.mit.gamma.property.model.PathFormula;
 import hu.bme.mit.gamma.property.model.PathQuantifier;
@@ -72,6 +74,43 @@ public class PropertyModelDerivedFeatures extends StatechartModelDerivedFeatures
 	public static boolean containsBinaryPathOperators(PathFormula formula) {
 		return !ecoreUtil.getSelfAndAllContentsOfType(
 				formula, BinaryOperandPathFormula.class).isEmpty();
+	}
+	
+	public static UnaryPathOperator getDual(UnaryPathOperator operator) {
+		switch (operator) {
+			case FUTURE:
+				return UnaryPathOperator.GLOBAL;
+			case GLOBAL:
+				return UnaryPathOperator.FUTURE;
+			default:
+				return operator;
+		}
+	}
+	
+	public static BinaryPathOperator getDual(BinaryPathOperator operator) {
+		switch (operator) {
+			case RELEASE:
+				return BinaryPathOperator.UNTIL;
+			case STRONG_RELEASE:
+				return BinaryPathOperator.WEAK_UNTIL;
+			case UNTIL:
+				return BinaryPathOperator.RELEASE;
+			case WEAK_UNTIL:
+				return BinaryPathOperator.STRONG_RELEASE;
+			default:
+				throw new IllegalArgumentException("Not known operator: " + operator);
+		}
+	}
+	
+	public static BinaryLogicalOperator getDual(BinaryLogicalOperator operator) {
+		switch (operator) {
+			case AND:
+				return BinaryLogicalOperator.OR;
+			case OR:
+				return BinaryLogicalOperator.AND;
+			default:
+				throw new IllegalArgumentException("Not known operator: " + operator);
+		}
 	}
 	
 }

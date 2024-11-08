@@ -15,6 +15,7 @@
       <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/UNTIL"/>
       <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/RELEASE"/>
       <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/WEAK_UNTIL"/>
+      <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/STRONG_RELEASE"/>
       <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/BEFORE"/>
       <genEnumLiterals ecoreEnumLiteral="property.ecore#//BinaryPathOperator/WEAK_BEFORE"/>
     </genEnums>
