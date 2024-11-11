@@ -172,25 +172,28 @@ class ImlVerifier extends AbstractVerifier {
 	
 	protected def getUtilityMethods(String query) { // TODO move to Prop-ser
 		val builder = new StringBuilder
-		if (query.contains(" exists_prefix ")) { // TODO check
+		if (query.contains("exists_prefix ")) {
 			builder.append('''
 				let rec exists_prefix r e p =
 					match e with
-					| [] -> false
-					| e_p @ (_ :: []) -> # Does not work
-						p (run r e_p) ||
-						exists_prefix r e_p p
+					| [] -> false (* No p r check *)
+					| [_] -> p r (* 1 last element will be unchecked *)
+					| hd :: tl -> p r || (* At least two elements (note the ||) *)
+						let r = run_cycle r hd in (* Run r based on the head *)
+						exists_prefix r tl p (* Check the tail *)
+				[@@adm e] (* Needed by Imandra to prove termination *)
 			''')
 		}
-		if (query.contains(" forall_prefix ")) {
+		if (query.contains("forall_prefix ")) {
 			builder.append('''
-				let rec forall_prefix r e p = # Last element of e is not considered (strict prefix)
-					p r && # Checking starts from the beginning
+				let rec forall_prefix r e p =
 					match e with
-					| [] | [_] | -> true
-					| hd :: tl ->
-						let r = run_cycle r hd in
-						forall_prefix r tl p
+					| [] -> true (* No p r check *)
+					| [_] -> p r (* 1 last element will be unchecked *)
+					| hd :: tl -> p r && (* At least two elements (note the &&) *)
+						let r = run_cycle r hd in (* Run r based on the head *)
+						forall_prefix r tl p (* Check the tail *)
+				[@@adm e] (* Needed by Imandra to prove termination *)
 			''')
 		}
 		return builder.toString
