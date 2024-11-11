@@ -14,6 +14,7 @@ import hu.bme.mit.gamma.expression.model.Comment
 import hu.bme.mit.gamma.property.model.AtomicFormula
 import hu.bme.mit.gamma.property.model.BinaryLogicalOperator
 import hu.bme.mit.gamma.property.model.BinaryOperandPathFormula
+import hu.bme.mit.gamma.property.model.BinaryPathOperator
 import hu.bme.mit.gamma.property.model.PathFormula
 import hu.bme.mit.gamma.property.model.PathQuantifier
 import hu.bme.mit.gamma.property.model.QuantifiedFormula
@@ -39,9 +40,17 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	protected override isValidFormula(StateFormula formula) {
 		// Note that this translation supports LTL with FINITE traces (no loops at the end)
 		// Also, the formula has to be in NNF while
-		// under A, we can have X, F and U, and
-		// under E, we can have X, G and R
-		return formula.ltl // TODO
+		// under A, we can have X, G and R, and
+		// under E, we can have X, F and U
+		val unaryOperators = formula.getSelfAndAllContentsOfType(UnaryOperandPathFormula).map[it.operator]
+		val binaryOperators = formula.getSelfAndAllContentsOfType(BinaryOperandPathFormula).map[it.operator]
+		
+		return formula.ltl &&
+			(formula.isAQuantified) ?
+		/* A */	unaryOperators.forall[ #[UnaryPathOperator.NEXT, UnaryPathOperator.GLOBAL].contains(it) ] &&
+				binaryOperators.forall[ #[BinaryPathOperator.RELEASE].contains(it) ] :
+		/* E */	unaryOperators.forall[ #[UnaryPathOperator.NEXT, UnaryPathOperator.FUTURE].contains(it) ] &&
+				binaryOperators.forall[ #[BinaryPathOperator.UNTIL].contains(it) ]
 	}
 	
 	override serialize(Comment comment) '''(* «comment.comment» *)'''
@@ -54,7 +63,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		if (!formula.helperEquals(nnfFormula)) {
 			logger.info("Transformed property into negation normal form (NNF): " + serializedFormula)
 		}
-		checkArgument(nnfFormula.validFormula, serializedFormula)
+		checkArgument(nnfFormula.validFormula, "Unsupported property specification: " + serializedFormula)
 		
 		return serializedFormula
 	}
@@ -87,12 +96,12 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		val lhsOperand = formula.leftOperand
 		val rhsOperand = formula.rightOperand
 		switch (operator) {
-			case UNTIL: { // Only under E
+			case UNTIL: { // Supported only under E
 				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
 						formula.inputId» in «rhsOperand.serializeFormula») && («
 							forallPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula»)))'''
 			}
-			case RELEASE: { // Only under A
+			case RELEASE: { // Supported only under A
 				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
 						formula.inputId» in «rhsOperand.serializeFormula») || («
 							existsPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)))'''

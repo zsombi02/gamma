@@ -71,6 +71,26 @@ public class PropertyModelDerivedFeatures extends StatechartModelDerivedFeatures
 				quantifiedFormulas.size() == 1 && quantifiedFormulas.get(0) == formula;
 	}
 	
+	public static boolean isQuantified(PathFormula formula) {
+		return formula instanceof QuantifiedFormula;
+	}
+	
+	public static boolean isQuantified(PathFormula formula, PathQuantifier quantifier) {
+		if (formula instanceof QuantifiedFormula quantifiedFormula) {
+			PathQuantifier pathQuantifier = quantifiedFormula.getQuantifier();
+			return quantifier == pathQuantifier;
+		}
+		return false;
+	}
+	
+	public static boolean isAQuantified(PathFormula formula) {
+		return isQuantified(formula, PathQuantifier.FORALL);
+	}
+	
+	public static boolean isEQuantified(PathFormula formula) {
+		return isQuantified(formula, PathQuantifier.EXISTS);
+	}
+	
 	public static boolean containsBinaryPathOperators(PathFormula formula) {
 		return !ecoreUtil.getSelfAndAllContentsOfType(
 				formula, BinaryOperandPathFormula.class).isEmpty();
