@@ -139,7 +139,8 @@ class ImlVerifier extends AbstractVerifier {
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
 			#trace trans;;
 			init;;
-			run init CX.e_0_UNTIL_0;; ««« TODO for more inputs
+			let path = collect_path «FOR inputsOfLevels : commandlessQuery.parseInputsOfLevels.values»«FOR inputOfLevels : inputsOfLevels»CX.«inputOfLevels» «ENDFOR»«ENDFOR» in
+			run init path;;
 		"""
 		# run init CX.e # We do not have to replay this trace (e due to 'fun e')
 		
@@ -183,6 +184,7 @@ class ImlVerifier extends AbstractVerifier {
 						let r = run_cycle r hd in (* Run r based on the head *)
 						exists_prefix r tl p (* Check the tail *)
 				[@@adm e] (* Needed by Imandra to prove termination *)
+				
 			''')
 		}
 		if (query.contains("forall_prefix ")) {
@@ -195,6 +197,7 @@ class ImlVerifier extends AbstractVerifier {
 						let r = run_cycle r hd in (* Run r based on the head *)
 						forall_prefix r tl p (* Check the tail *)
 				[@@adm e] (* Needed by Imandra to prove termination *)
+				
 			''')
 		}
 		if (query.contains("is_one_prefix_of_other ")) {
@@ -204,8 +207,33 @@ class ImlVerifier extends AbstractVerifier {
 					then true
 					else
 						List.hd l = List.hd r && is_one_prefix_of_other (List.tl l) (List.tl r)
+				
 			''')
 		}
+		
+		builder.append('''
+			let rec select_longest list_of_lists =
+				match list_of_lists with
+					| [] -> []
+					| hd::tl ->
+						let so_far_longest = select_longest tl in
+						if List.length hd >= List.length so_far_longest then
+							hd
+						else
+							so_far_longest
+			
+		''')
+		
+		var count = 0
+		builder.append('''
+			let collect_path «query.parseInputs» =
+				let path_«count++» = [] in
+				«FOR inputsOfLevel : query.parseInputsOfLevels.values»
+					let path_«count++» = path_«count - 2» @ select_longest [«FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT")»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
+				«ENDFOR»
+				path_«count - 1»
+			
+		''')
 		
 		return builder.toString
 	}
@@ -225,6 +253,21 @@ class ImlVerifier extends AbstractVerifier {
 		}
 		
 		return argument.toString.trim -> postArgument.toString.trim
+	}
+	
+	protected def parseInputs(String query) {
+		val funKeyword = "fun"
+		val funIndex = query.indexOf(funKeyword)
+		val lastIndex = query.indexOf("->")
+		val input = query.substring(funIndex + funKeyword.length, lastIndex).trim
+		return input
+	}
+	
+	protected def parseInputsOfLevels(String query) {
+		val input = query.parseInputs
+		val inputs = input.split("\\s")
+		val inputsOfLevels = inputs.groupBy[Integer.valueOf(it.split("\\_").get(1))] // Sorted map needed!
+		return inputsOfLevels
 	}
 	
 	//

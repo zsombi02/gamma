@@ -82,7 +82,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		val pathFormula = formula.formula
 		val inputtableFormulas = formula.relevantTemporalPathFormulas
 		return '''«imandraCall»(fun«FOR e : inputtableFormulas» «e.inputId»«ENDFOR» -> («
-				formula.singlePathConstraint» «singlePathConstraintOperator») let «
+				formula.singlePathConstraint») «singlePathConstraintOperator» let «
 				recordId» = «Namings.INIT_FUNCTION_IDENTIFIER» in «pathFormula.serializeFormula»)'''
 	}
 	
@@ -199,7 +199,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	}
 	
 	protected def getSinglePathConstraint(QuantifiedFormula formula) {
-		val builder = new StringBuilder()
+		val builder = new StringBuilder("true") // Placeholder, works with && and ==>, too
 		
 		val formulas = formula.relevantTemporalPathFormulas
 		val sameLevelFormulasMap = formulas.groupBy[
@@ -211,21 +211,17 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 			val next = nexts.head
 			if (nexts.size > 1) {
 				// The single input elements (next input) shall be the same
-				builder.append('''(«FOR otherNext : nexts SEPARATOR " && "»«next.inputId» = «otherNext.inputId»«ENDFOR»)''')
+				builder.append(''' && («FOR otherNext : nexts SEPARATOR " && "»«next.inputId» = «otherNext.inputId»«ENDFOR»)''')
 			}
 			if (others.size > 1) {
 				// The non-empty lists' first element shall be the same as 'next'
 				if (next !== null) {
-					builder.append('''(«FOR other : others SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
+					builder.append(''' && («FOR other : others SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
 				}
 				// The lists shall be each other's prefixes
 				val otherPairs = others.pairs
-				builder.append('''(«FOR otherPair : otherPairs SEPARATOR " && "»«getIsOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»«ENDFOR»)''')
+				builder.append(''' && («FOR otherPair : otherPairs SEPARATOR " && "»«isOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»«ENDFOR»)''')
 			}
-		}
-		
-		if (builder.empty) {
-			builder.append("true")
 		}
 		
 		return builder.toString
