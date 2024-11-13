@@ -139,7 +139,7 @@ class ImlVerifier extends AbstractVerifier {
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
 			#trace trans;;
 			init;;
-			run init CX.e0;; ««« TODO for more inputs
+			run init CX.e_0_UNTIL_0;; ««« TODO for more inputs
 		"""
 		# run init CX.e # We do not have to replay this trace (e due to 'fun e')
 		
@@ -197,6 +197,16 @@ class ImlVerifier extends AbstractVerifier {
 				[@@adm e] (* Needed by Imandra to prove termination *)
 			''')
 		}
+		if (query.contains("is_one_prefix_of_other ")) {
+			builder.append('''
+				let rec is_one_prefix_of_other l r =
+					if l = [] || r = []
+					then true
+					else
+						List.hd l = List.hd r && is_one_prefix_of_other (List.tl l) (List.tl r)
+			''')
+		}
+		
 		return builder.toString
 	}
 	

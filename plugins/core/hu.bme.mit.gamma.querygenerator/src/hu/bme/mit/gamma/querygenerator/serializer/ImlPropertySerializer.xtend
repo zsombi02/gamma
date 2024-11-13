@@ -77,10 +77,12 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	protected override dispatch String serializeFormula(QuantifiedFormula formula) {
 		val quantifier = formula.quantifier // A or E
 		val imandraCall = (quantifier == PathQuantifier.FORALL) ? "verify" : "instance"
+		val singlePathConstraintOperator = (quantifier == PathQuantifier.FORALL) ? "==>" : "&&"
 		
 		val pathFormula = formula.formula
 		val inputtableFormulas = formula.relevantTemporalPathFormulas
-		return '''«imandraCall»(fun«FOR e : inputtableFormulas» «e.inputId»«ENDFOR» -> let «
+		return '''«imandraCall»(fun«FOR e : inputtableFormulas» «e.inputId»«ENDFOR» -> («
+				formula.singlePathConstraint» «singlePathConstraintOperator») let «
 				recordId» = «Namings.INIT_FUNCTION_IDENTIFIER» in «pathFormula.serializeFormula»)'''
 	}
 	
@@ -125,7 +127,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 			case AND: "&&"
 			case IMPLY: "==>"
 			case OR: "||"
-			case XOR: "^"
+			case XOR: "<>"
 			default: throw new IllegalArgumentException("Not supported operator: " + operator)
 		}
 	}
@@ -196,6 +198,41 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		return inputId + formula.postfix
 	}
 	
+	protected def getSinglePathConstraint(QuantifiedFormula formula) {
+		val builder = new StringBuilder()
+		
+		val formulas = formula.relevantTemporalPathFormulas
+		val sameLevelFormulasMap = formulas.groupBy[
+				formula.getAllContainersOfType(TemporalPathFormula).size] // Same-level operators
+		for (sameLevelFormulas : sameLevelFormulasMap.values) {
+			val nexts = sameLevelFormulas.filter(UnaryOperandPathFormula).filter[it.operator == UnaryPathOperator.NEXT]
+			val others = sameLevelFormulas.reject[nexts.contains(it)]
+			
+			val next = nexts.head
+			if (nexts.size > 1) {
+				// The single input elements (next input) shall be the same
+				builder.append('''(«FOR otherNext : nexts SEPARATOR " && "»«next.inputId» = «otherNext.inputId»«ENDFOR»)''')
+			}
+			if (others.size > 1) {
+				// The non-empty lists' first element shall be the same as 'next'
+				if (next !== null) {
+					builder.append('''(«FOR other : others SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
+				}
+				// The lists shall be each other's prefixes
+				val otherPairs = others.pairs
+				builder.append('''(«FOR otherPair : otherPairs SEPARATOR " && "»«getIsOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»«ENDFOR»)''')
+			}
+		}
+		
+		if (builder.empty) {
+			builder.append("true")
+		}
+		
+		return builder.toString
+	}
+	
+	//
+	
 	protected def getFunctionName(UnaryPathOperator operator) {
 		switch (operator) {
 			case FUTURE,
@@ -207,5 +244,6 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	
 	protected def getForallPrefixName() '''forall_prefix'''
 	protected def getExistsPrefixName() '''exists_prefix'''
+	protected def getIsOnePrefixOfOtherName() '''is_one_prefix_of_other'''
 	
 }

@@ -172,6 +172,21 @@ class JavaUtil {
 		}
 	}
 	
+	def <T> List<Entry<T, T>> getPairs(Iterable<T> collection) {
+		val pairs = <Entry<T, T>>newArrayList
+		
+		for (element : collection) {
+			for (elem : collection) {
+				if (element !== elem &&
+						!pairs.contains(Map.entry(elem, element))) { // To avoid a-b and b-a pairs
+					pairs += Map.entry(element, elem)
+				}
+			}
+		}
+		
+		return pairs
+	}
+	
 	//
 	
 	def String deleteAll(String string, String regex) {
