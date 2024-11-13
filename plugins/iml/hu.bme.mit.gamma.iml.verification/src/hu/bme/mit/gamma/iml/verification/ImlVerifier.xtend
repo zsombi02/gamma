@@ -142,7 +142,6 @@ class ImlVerifier extends AbstractVerifier {
 			let path = collect_path «FOR inputsOfLevels : commandlessQuery.parseInputsOfLevels.values»«FOR inputOfLevels : inputsOfLevels»CX.«inputOfLevels» «ENDFOR»«ENDFOR» in
 			run init path;;
 		"""
-		# run init CX.e # We do not have to replay this trace (e due to 'fun e')
 		
 		with imandra_http_api_client.ApiClient(config) as api_client:
 		    api_instance = imandra_http_api_client.DefaultApi(api_client)
@@ -229,7 +228,8 @@ class ImlVerifier extends AbstractVerifier {
 			let collect_path «query.parseInputs» =
 				let path_«count++» = [] in
 				«FOR inputsOfLevel : query.parseInputsOfLevels.values»
-					let path_«count++» = path_«count - 2» @ select_longest [«FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT")»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
+					let path_«count++» = path_«count - 2» @ select_longest [«
+						FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT") /* TODO based on ImlPropertySerializer.getInputId */»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
 				«ENDFOR»
 				path_«count - 1»
 			
@@ -266,7 +266,8 @@ class ImlVerifier extends AbstractVerifier {
 	protected def parseInputsOfLevels(String query) {
 		val input = query.parseInputs
 		val inputs = input.split("\\s")
-		val inputsOfLevels = inputs.groupBy[Integer.valueOf(it.split("\\_").get(1))] // Sorted map needed!
+		// Sorted map needed!
+		val inputsOfLevels = inputs.groupBy[Integer.valueOf(it.split("\\_").get(1))] // TODO based on ImlPropertySerializer.getInputId
 		return inputsOfLevels
 	}
 	

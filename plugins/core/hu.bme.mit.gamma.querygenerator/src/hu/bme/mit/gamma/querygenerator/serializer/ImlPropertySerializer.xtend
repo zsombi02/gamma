@@ -206,21 +206,21 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 				formula.getAllContainersOfType(TemporalPathFormula).size] // Same-level operators
 		for (sameLevelFormulas : sameLevelFormulasMap.values) {
 			val nexts = sameLevelFormulas.filter(UnaryOperandPathFormula).filter[it.operator == UnaryPathOperator.NEXT]
-			val others = sameLevelFormulas.reject[nexts.contains(it)]
+			val nonNexts = sameLevelFormulas.reject[nexts.contains(it)]
 			
 			val next = nexts.head
 			if (nexts.size > 1) {
 				// The single input elements (next input) shall be the same
 				builder.append(''' && («FOR otherNext : nexts SEPARATOR " && "»«next.inputId» = «otherNext.inputId»«ENDFOR»)''')
 			}
-			if (others.size > 1) {
+			if (nonNexts.size > 1) {
 				// The non-empty lists' first element shall be the same as 'next'
 				if (next !== null) {
-					builder.append(''' && («FOR other : others SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
+					builder.append(''' && («FOR other : nonNexts SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
 				}
 				// The lists shall be each other's prefixes
-				val otherPairs = others.pairs
-				builder.append(''' && («FOR otherPair : otherPairs SEPARATOR " && "»«isOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»«ENDFOR»)''')
+				val otherPairs = nonNexts.pairs
+				builder.append(''' && («FOR otherPair : otherPairs SEPARATOR " && "»(«isOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»)«ENDFOR»)''')
 			}
 		}
 		
