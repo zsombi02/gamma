@@ -38,6 +38,7 @@ import hu.bme.mit.gamma.expression.model.NullaryExpression
 import hu.bme.mit.gamma.expression.model.SubtractExpression
 import hu.bme.mit.gamma.expression.model.TrueExpression
 import hu.bme.mit.gamma.expression.model.TypeDeclaration
+import hu.bme.mit.gamma.expression.model.XorExpression
 import hu.bme.mit.gamma.expression.util.ExpressionEvaluator
 import hu.bme.mit.gamma.expression.util.ExpressionTypeDeterminator2
 import hu.bme.mit.gamma.util.GammaEcoreUtil
@@ -125,6 +126,8 @@ class ExpressionSerializer extends hu.bme.mit.gamma.expression.util.ExpressionSe
 	override String _serialize(NotExpression expression) '''(not («expression.operand.serialize»))'''
 	
 	override String _serialize(ImplyExpression expression) '''(«expression.leftOperand.serialize» ==> «expression.rightOperand.serialize»)'''
+	
+	override String _serialize(XorExpression expression) '''(«FOR operand : expression.operands SEPARATOR " <> "»«operand.serialize»«ENDFOR»)'''
 	
 	override String _serialize(EqualityExpression expression) '''(«expression.leftOperand.serialize» = «expression.rightOperand.serialize»)'''
 	

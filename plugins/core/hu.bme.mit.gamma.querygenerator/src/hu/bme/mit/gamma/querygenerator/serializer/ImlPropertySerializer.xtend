@@ -173,13 +173,27 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		return "e"
 	}
 	
-	protected def getIndex(TemporalPathFormula formula) {
+	protected def getPostfix(TemporalPathFormula formula) {
 		val unaryOperandPathFormulas = formula.relevantTemporalPathFormulas
-		return unaryOperandPathFormulas.indexOf(formula)
+		val containingTemporalPathFormulas = formula.getAllContainersOfType(TemporalPathFormula)
+		
+		val operator = if (formula instanceof UnaryOperandPathFormula) {
+			formula.operator.toString
+		}
+		else if (formula instanceof BinaryOperandPathFormula) {
+			formula.operator.toString
+		}
+		else {
+			throw new IllegalArgumentException("Not known formula: " + formula)
+		}
+		
+		val postfix = '''_«containingTemporalPathFormulas.size»_«operator»_«unaryOperandPathFormulas.indexOf(formula)»'''
+		
+		return postfix
 	}
 	
 	protected def getInputId(TemporalPathFormula formula) {
-		return inputId + formula.index
+		return inputId + formula.postfix
 	}
 	
 	protected def getFunctionName(UnaryPathOperator operator) {

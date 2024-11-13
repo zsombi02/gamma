@@ -40,7 +40,7 @@ class TraceBackAnnotator {
 	protected final String STATE = " -->"
 	protected final String LOOP = " loop "
 	protected final String RETURN_VALUE = "- : "
-	protected final String COUNTEREXAMPLE_VAR = "module CX :"
+	protected final String COUNTEREXAMPLE_VAR = RETURN_VALUE + "t =" // Used to be 'module CX :' before refactor
 	//
 	protected final Scanner traceScanner
 	//
@@ -121,19 +121,20 @@ class TraceBackAnnotator {
 				state = line.handleInfoLines(state)
 				//
 				
-				if (state != BackAnnotatorState.INFO) {
+				if (state != BackAnnotatorState.INFO && state != BackAnnotatorState.END) {
 					switch (line) {
+						case line.contains(COUNTEREXAMPLE_VAR): { // Before RETURN_VALUE
+							isValidTrace = true
+							state = BackAnnotatorState.END
+						}
 						case line.startsWith(RETURN_VALUE): {
 							// Return value of a call, no operation
-						}
-						case line.contains(COUNTEREXAMPLE_VAR): {
-							isValidTrace = true
 						}
 						case state == BackAnnotatorState.INIT: {
 							step.addReset
 							isInitialized = true
 							
-							traceScanner.nextLine // Removing '- : t =' from the trace
+							traceScanner.nextLine // Removing '- : t =' corresponding to 'init' from the trace
 							
 							state = BackAnnotatorState.STATE_CHECK
 						}
@@ -331,6 +332,6 @@ class TraceBackAnnotator {
 	
 	//
 	
-	enum BackAnnotatorState {INFO, INIT, STATE_CHECK, ENVIRONMENT_CHECK}
+	enum BackAnnotatorState {INFO, INIT, STATE_CHECK, ENVIRONMENT_CHECK, END}
 	
 }

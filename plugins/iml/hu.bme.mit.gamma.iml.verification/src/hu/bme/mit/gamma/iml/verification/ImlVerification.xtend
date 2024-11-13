@@ -43,7 +43,10 @@ class ImlVerification extends AbstractVerification {
 	}
 	
 	override getDefaultArguments() { // ~upto:100, ~upto_bound:10
-		return #[ "", "[@@auto]" ] // Basic BMC and induction
+		return #[
+			"" // Basic BMC with a predefined bound
+//			"[@@auto]" // Induction - works only for verify calls?
+			]
 	}
 	
 	//

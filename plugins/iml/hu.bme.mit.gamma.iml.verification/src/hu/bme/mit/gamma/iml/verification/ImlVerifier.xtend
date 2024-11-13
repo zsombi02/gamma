@@ -136,9 +136,10 @@ class ImlVerifier extends AbstractVerifier {
 		src = """
 			«modelString»;;
 			«commandlessQuery.utilityMethods»;;
+			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
 			#trace trans;;
 			init;;
-			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
+			run init CX.e0;; ««« TODO for more inputs
 		"""
 		# run init CX.e # We do not have to replay this trace (e due to 'fun e')
 		
