@@ -76,7 +76,9 @@ class ImlVerifier extends AbstractVerifier {
 			// Reading the result of the command
 			resultReader = new Scanner(process.inputReader)
 			errorReader = new ScannerLogger(
-					new Scanner(process.errorReader), "ValueError: ",  true)
+					new Scanner(process.errorReader),
+					#["imandra_http_api_client.exceptions.ServiceException", "HTTP Error", "urllib.error.HTTPError", "ValueError"],
+					true)
 			errorReader.start
 			
 			result = ThreeStateBoolean.UNDEF
@@ -136,10 +138,10 @@ class ImlVerifier extends AbstractVerifier {
 		src = """
 			«modelString»;;
 			«commandlessQuery.utilityMethods»;;
-			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;; (* The trace is automatically printed *)
+			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;;
 			#trace trans;;
 			init;;
-			let path = collect_path «FOR inputsOfLevels : commandlessQuery.parseInputsOfLevels.values»«FOR inputOfLevels : inputsOfLevels»CX.«inputOfLevels» «ENDFOR»«ENDFOR» in
+			let path = collect_path «FOR inputsOfLevels : commandlessQuery.parseInputsOfLevels.values»«FOR inputOfLevels : inputsOfLevels»CX.«inputOfLevels» «ENDFOR»«ENDFOR»in
 			run init path;;
 		"""
 		

@@ -84,8 +84,8 @@ class ActionSerializer {
 			val functionBody = (action instanceof IfAction) ?
 					actionCode.deleteFirst(localVariableDeclarations).deleteLast("in") : actionCode + " " + localVariableNames
 			val functionCode = '''
-				let «functionName» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («localVariableName» : «action.localRecordType») =
-					«functionBody»
+				let «functionName» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («
+					localVariableName» : «action.localRecordType») = «functionBody»
 			'''
 			actions += action -> functionCode
 			

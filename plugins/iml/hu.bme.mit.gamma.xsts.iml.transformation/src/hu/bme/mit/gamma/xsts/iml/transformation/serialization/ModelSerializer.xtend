@@ -152,8 +152,8 @@ class ModelSerializer {
 				match «ENV_HAVOC_RECORD_IDENTIFIER» with
 					| [] -> «globalVariableName»
 					| hd :: tl ->
-						«globalVariableDeclaration»run_cycle «globalVariableName» hd in
-						run «globalVariableName» tl
+						«globalVariableDeclaration»«SINGLE_RUN_FUNCTION_IDENTIFIER» «globalVariableName» hd in
+						«RUN_FUNCTION_IDENTIFIER» «globalVariableName» tl
 		'''
 		
 		return '''
