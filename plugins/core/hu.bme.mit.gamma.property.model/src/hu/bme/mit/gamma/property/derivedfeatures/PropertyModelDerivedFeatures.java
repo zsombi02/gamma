@@ -12,6 +12,8 @@ package hu.bme.mit.gamma.property.derivedfeatures;
 
 import java.util.List;
 
+import org.eclipse.emf.ecore.EObject;
+
 import hu.bme.mit.gamma.property.model.AtomicFormula;
 import hu.bme.mit.gamma.property.model.BinaryLogicalOperator;
 import hu.bme.mit.gamma.property.model.BinaryOperandPathFormula;
@@ -89,6 +91,28 @@ public class PropertyModelDerivedFeatures extends StatechartModelDerivedFeatures
 	
 	public static boolean isEQuantified(PathFormula formula) {
 		return isQuantified(formula, PathQuantifier.EXISTS);
+	}
+	
+	public static boolean isAQuantifiedTransitively(PathFormula formula) {
+		if (isAQuantified(formula)) {
+			return true;
+		}
+		EObject container = formula.eContainer();
+		if (container instanceof PathFormula containerFormula) {
+			return isAQuantifiedTransitively(containerFormula);
+		}
+		return false;
+	}
+	
+	public static boolean isEQuantifiedTransitively(PathFormula formula) {
+		if (isEQuantified(formula)) {
+			return true;
+		}
+		EObject container = formula.eContainer();
+		if (container instanceof PathFormula containerFormula) {
+			return isEQuantifiedTransitively(containerFormula);
+		}
+		return false;
 	}
 	
 	public static boolean containsBinaryPathOperators(PathFormula formula) {

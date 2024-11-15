@@ -31,7 +31,7 @@ The informal semantics of these temporal logic operators considering valid LTL (
 - **F** φ: *Future* - φ eventually has to hold (somewhere on the subsequent path): ![F](https://upload.wikimedia.org/wikipedia/commons/3/37/Ltleventually.svg "F semantics")
 - **G** φ: *Globally* - φ has to hold on the entire subsequent path: ![G](https://upload.wikimedia.org/wikipedia/commons/e/e2/Ltlalways.svg "G semantics")
 - ψ **U** φ: *Until* - ψ has to hold at least until φ becomes true, which must hold in the current or a future state: ![U](https://upload.wikimedia.org/wikipedia/commons/0/0c/Ltluntil.svg "U semantics")
-	- Note that **F** φ ≡ _true_ **U** φ, and **F** φ ≡ ¬**G** ¬φ.
+	- Note that **F** φ ≡ _true_ **U** φ, and **F** φ ≡ ¬**G** ¬φ. Moreover, ψ **R** φ ≡ ¬(¬ψ **U** ¬φ), ψ **WU** φ ≡ ψ **U** φ || **G** ψ and ψ **SR** φ ≡ ¬(¬ψ **WU** ¬φ).
 
 ### Computation tree logic (CTL)
 
@@ -58,18 +58,25 @@ The Gamma-IML integration supports the mapping of a subset of LTL properties spe
 - *run_cycle r e*: the *run_cycle* function executes the model a single time (single cycle/step), based on its current state (captured by _r_) and the single incoming input (_e_);
 - _run r e list_: the _run_ function, in a **recursive** manner, calls the *run_cycle* method based on the initial model state (captured by _r_) and a list of incoming inputs (_e list_) zero or more times (size of _e list_).
 
-Accordingly, the following LTL properties (using a valid nested LTL (sub)formulas ψ and φ) can be mapped into IML as follows:
+Accordingly, the following LTL properties (using a valid nested LTL (sub)formulas ψ and φ and considering **universally** quantified paths) can be mapped into IML as follows:
 
 - *X φ* ≡ *verify(fun e -> let r = run_cycle init e in φ)*;
 - *G φ* ≡ *verify(fun e -> let r = run init e in φ)*;
-- *F φ* ≡ *verify(fun e -> (ends_in_real_loop r e) ==> exists_real_prefix init e (fun r -> φ))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds);
+- *F φ* ≡ *verify(fun e -> (ends_in_real_loop init e) ==> exists_real_prefix init e (fun r -> φ))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds);
 - *ψ R φ* ≡ *verify(fun e -> let r = run init e in φ || exists_prefix init e (fun r -> ψ && φ)* (i.e., φ holds in every state (globally), or there exists a previous state where both ψ and φ hold);
-- *ψ U φ* ≡ *verify(fun e -> (ends_in_real_loop r e) ==> exists_real_prefix init e (fun r -> φ && forall_real_prefix init e (fun r -> ψ)))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds, in each preceding state of which ψ holds);
-
-Extra:
 - *ψ WU φ* ≡ *verify(fun e -> let r = run init e in ψ || exists_prefix init e (fun r -> φ)* (i.e., ψ holds in every state (globally), or there exists a previous state where φ holds).
 
-Note that in case of a property violation based on the F and U operators, we do not back-annotate the states "after" these temporal operators (i.e., we just return the loop, regardless of how the property was violated inside).
+Limitation:
 
+- *ψ U φ* ≡ *verify(fun e -> (ends_in_real_loop init e) ==> exists_real_prefix init e (fun r -> φ && forall_real_prefix init ?e_? (fun r -> ψ)))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds, in each preceding state of which ψ holds - we cannot capture the last *e* input);
+- *ψ SR φ* - cannot be supported similarly to the above reason.
 
+Note that in case of a property violation based on the F and U operators (if the latter could be supported), we do not back-annotate the states "after" these temporal operators (i.e., we just return the loop, regardless of how the property was violated inside).
 
+For **existentially** quantified paths, we can use the following mappings:
+
+- *X φ* ≡ *instance(fun e -> let r = run_cycle init e in φ)*;
+- *F φ* ≡ *instance(fun e -> let r = run init e in φ)*;
+- *G φ* ≡ *instance(fun e -> (ends_in_real_loop r e) ==> forall_real_prefix init e (fun r -> φ))*;
+- *ψ U φ*  ≡ *instance(fun e -> let r = run init e in φ && forall_real_prefix init e (fun r -> ψ))*;
+- *ψ SR φ*  ≡ *instance(fun e -> let r = run init e in (ψ && φ) && forall_real_prefix init e (fun r -> φ))*.

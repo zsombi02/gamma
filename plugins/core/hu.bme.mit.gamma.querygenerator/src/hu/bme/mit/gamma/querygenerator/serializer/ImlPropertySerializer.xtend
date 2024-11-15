@@ -38,19 +38,15 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	//
 	
 	protected override isValidFormula(StateFormula formula) {
-		// Note that this translation supports LTL with FINITE traces (no loops at the end)
 		// Also, the formula has to be in NNF while
-		// under A, we can have X, G and R, and
-		// under E, we can have X, F and U
-		val unaryOperators = formula.getSelfAndAllContentsOfType(UnaryOperandPathFormula).map[it.operator]
+		// under A, we can have X, F, G and R, WU, and
+		// under E, we can have X, F, G and U, SB
 		val binaryOperators = formula.getSelfAndAllContentsOfType(BinaryOperandPathFormula).map[it.operator]
 		
 		return formula.ltl &&
 			(formula.isAQuantified) ?
-		/* A */	unaryOperators.forall[ #[UnaryPathOperator.NEXT, UnaryPathOperator.GLOBAL].contains(it) ] &&
-				binaryOperators.forall[ #[BinaryPathOperator.RELEASE].contains(it) ] :
-		/* E */	unaryOperators.forall[ #[UnaryPathOperator.NEXT, UnaryPathOperator.FUTURE].contains(it) ] &&
-				binaryOperators.forall[ #[BinaryPathOperator.UNTIL].contains(it) ]
+				binaryOperators.forall[ #[BinaryPathOperator.RELEASE, BinaryPathOperator.WEAK_UNTIL].contains(it) ] : // A
+				binaryOperators.forall[ #[BinaryPathOperator.UNTIL, BinaryPathOperator.STRONG_RELEASE].contains(it) ] // E
 	}
 	
 	override serialize(Comment comment) '''(* «comment.comment» *)'''
@@ -88,28 +84,61 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	
 	protected override dispatch String serializeFormula(UnaryOperandPathFormula formula) {
 		val operator = formula.operator // G, F or X
-		val functionName = operator.functionName
 		val operand = formula.operand
-		return '''let «recordId» = «functionName» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+		if (formula.isAQuantifiedTransitively) {
+			return switch (operator) {
+				case NEXT: '''let «recordId» = «Namings.SINGLE_RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+				case GLOBAL: '''let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+				case FUTURE: '''((«endsInRealLoopName» «recordId» «formula.inputId») ==> «
+						existsRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «operand.serializeFormula»))'''
+				default: throw new IllegalArgumentException("Not supported operator")
+			}
+		}
+		else { // E
+			return switch (operator) {
+				case NEXT: '''let «recordId» = «Namings.SINGLE_RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+				case FUTURE: '''let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
+				case GLOBAL: '''((«endsInRealLoopName» «recordId» «formula.inputId») ==> «
+						forallRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «operand.serializeFormula»))'''
+				default: throw new IllegalArgumentException("Not supported operator")
+			}
+		}
 	}
 	
 	protected override dispatch String serializeFormula(BinaryOperandPathFormula formula) {
 		val operator = formula.operator
 		val lhsOperand = formula.leftOperand
 		val rhsOperand = formula.rightOperand
-		switch (operator) {
-			case UNTIL: { // Supported only under E
-				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
-						formula.inputId» in «rhsOperand.serializeFormula») && («
-							forallRealPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula»)))'''
+		if (formula.isAQuantifiedTransitively) {
+			return switch (operator) {
+				case RELEASE:
+					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+							formula.inputId» in «rhsOperand.serializeFormula») || («
+								existsPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)))'''
+				case WEAK_UNTIL:
+					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+							formula.inputId» in «lhsOperand.serializeFormula») || («
+								existsPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula»)))'''
+//				case UNTIL:
+//					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let rs = «recordId» in «
+//							existsRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «
+//								rhsOperand.serializeFormula» && «
+//									forallRealPrefixName» rs «formula.inputId - does not capture the correct prefix» fun(«recordId» -> «lhsOperand.serializeFormula»)))'''
+				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
-			case RELEASE: { // Supported only under A
-				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
-						formula.inputId» in «rhsOperand.serializeFormula») || («
-							existsPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)))'''
+		}
+		else { // E
+			return switch (operator) {
+				case UNTIL:
+					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+							formula.inputId» in «rhsOperand.serializeFormula») && («
+								forallRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «lhsOperand.serializeFormula»)))'''
+				case STRONG_RELEASE:
+					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
+							formula.inputId» in («lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)) && («
+								forallRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula»)))'''
+				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
-			default:
-				throw new IllegalArgumentException("Not supported operator: " + operator)
 		}
 	}
 	
@@ -189,7 +218,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 			throw new IllegalArgumentException("Not known formula: " + formula)
 		}
 		
-		val postfix = '''_«containingTemporalPathFormulas.size»_«operator»_«unaryOperandPathFormulas.indexOf(formula)»'''
+		val postfix = '''_«containingTemporalPathFormulas.size»_«operator»_«unaryOperandPathFormulas.indexOf(formula)»''' // This format is depended on elsewhere...
 		
 		return postfix
 	}
@@ -218,7 +247,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 				if (next !== null) {
 					builder.append(''' && («FOR other : nonNexts SEPARATOR " && "»((«other.inputId» <> []) ==> List.hd «other.inputId» = «next.inputId»)«ENDFOR»)''')
 				}
-				// The lists shall be each other's prefixes
+				// The lists shall be each other's prefixes // Should work for paths ending in loops (e.g., A F or E G), too
 				val otherPairs = nonNexts.pairs
 				builder.append(''' && («FOR otherPair : otherPairs SEPARATOR " && "»(«isOnePrefixOfOtherName» «otherPair.key.inputId» «otherPair.value.inputId»)«ENDFOR»)''')
 			}
@@ -228,15 +257,6 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	}
 	
 	//
-	
-	protected def getFunctionName(UnaryPathOperator operator) {
-		switch (operator) {
-			case FUTURE,
-			case GLOBAL: return Namings.RUN_FUNCTION_IDENTIFIER
-			case NEXT: return Namings.SINGLE_RUN_FUNCTION_IDENTIFIER
-			default: throw new IllegalArgumentException("Not known operator: " + operator)
-		}
-	}
 	
 	protected def getForallPrefixName() '''forall_prefix'''
 	protected def getExistsPrefixName() '''exists_prefix'''
