@@ -16,6 +16,8 @@ import hu.bme.mit.gamma.util.ScannerLogger
 import hu.bme.mit.gamma.verification.result.ThreeStateBoolean
 import hu.bme.mit.gamma.verification.util.AbstractVerifier
 import java.io.File
+import java.util.List
+import java.util.Map
 import java.util.Scanner
 
 class ImlVerifier extends AbstractVerifier {
@@ -141,7 +143,11 @@ class ImlVerifier extends AbstractVerifier {
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;;
 			#trace trans;;
 			init;;
-			let path = collect_path «FOR inputsOfLevels : commandlessQuery.parseInputsOfLevels.values»«FOR inputOfLevels : inputsOfLevels»CX.«inputOfLevels» «ENDFOR»«ENDFOR»in
+			let path = collect_path «FOR inputsOfLevels : commandlessQuery
+				.parseInputsOfLevels
+				.discardInputsAfterLoops(command) // Discarding events (path parts) after the first loop
+				.values»«
+					FOR inputOfLevels : inputsOfLevels»«IF inputOfLevels != "[]"»CX.«inputOfLevels»«ELSE»«[]»«ENDIF» «ENDFOR»«ENDFOR»in
 			run init path;;
 		"""
 		
@@ -179,27 +185,54 @@ class ImlVerifier extends AbstractVerifier {
 			builder.append('''
 				let rec exists_prefix r e p =
 					match e with
+					| [] -> p r (* Last element will be checked, too *)
+					| hd :: tl -> p r || (* At least one element (note the ||) *)
+						let r = run_cycle r hd in (* Run r based on the head *)
+						exists_prefix r tl p (* Check the tail *)
+				[@@adm e] (* Needed by Imandra to prove termination *)
+			''')
+		}
+		if (query.contains("exists_real_prefix ")) {
+			builder.append('''
+				let rec exists_real_prefix r e p =
+					match e with
 					| [] -> false (* No p r check *)
 					| [_] -> p r (* 1 last element will be unchecked *)
 					| hd :: tl -> p r || (* At least two elements (note the ||) *)
 						let r = run_cycle r hd in (* Run r based on the head *)
-						exists_prefix r tl p (* Check the tail *)
+						exists_real_prefix r tl p (* Check the tail *)
 				[@@adm e] (* Needed by Imandra to prove termination *)
-				
 			''')
 		}
 		if (query.contains("forall_prefix ")) {
 			builder.append('''
 				let rec forall_prefix r e p =
 					match e with
+					| [] -> p r (* Last element will be checked *)
+					| hd :: tl -> p r && (* At least one element (note the &&) *)
+						let r = run_cycle r hd in (* Run r based on the head *)
+						forall_prefix r tl p (* Check the tail *)
+				[@@adm e] (* Needed by Imandra to prove termination *)
+			''')
+		}
+		if (query.contains("forall_real_prefix ")) {
+			builder.append('''
+				let rec forall_real_prefix r e p =
+					match e with
 					| [] -> true (* No p r check *)
 					| [_] -> p r (* 1 last element will be unchecked *)
 					| hd :: tl -> p r && (* At least two elements (note the &&) *)
 						let r = run_cycle r hd in (* Run r based on the head *)
-						forall_prefix r tl p (* Check the tail *)
+						forall_real_prefix r tl p (* Check the tail *)
 				[@@adm e] (* Needed by Imandra to prove termination *)
-				
 			''')
+		}
+		if (query.contains("ends_in_real_loop ")) {
+			builder.append('''
+				let rec ends_in_real_loop r e =
+					let end_state = run r e in
+					exists_real_prefix r e fun(r -> r = end_state)
+			''') // Note exists_real_prefix here; exists_prefix would allow stuttering...
 		}
 		if (query.contains("is_one_prefix_of_other ")) {
 			builder.append('''
@@ -208,7 +241,6 @@ class ImlVerifier extends AbstractVerifier {
 					then true
 					else
 						List.hd l = List.hd r && is_one_prefix_of_other (List.tl l) (List.tl r)
-				
 			''')
 		}
 		
@@ -222,7 +254,6 @@ class ImlVerifier extends AbstractVerifier {
 							hd
 						else
 							so_far_longest
-			
 		''')
 		
 		var count = 0
@@ -231,10 +262,9 @@ class ImlVerifier extends AbstractVerifier {
 				let path_«count++» = [] in
 				«FOR inputsOfLevel : query.parseInputsOfLevels.values»
 					let path_«count++» = path_«count - 2» @ select_longest [«
-						FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT") /* TODO based on ImlPropertySerializer.getInputId */»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
+						FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT_") /* TODO based on ImlPropertySerializer.getInputId */»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
 				«ENDFOR»
 				path_«count - 1»
-			
 		''')
 		
 		return builder.toString
@@ -270,6 +300,24 @@ class ImlVerifier extends AbstractVerifier {
 		val inputs = input.split("\\s")
 		// Sorted map needed!
 		val inputsOfLevels = inputs.groupBy[Integer.valueOf(it.split("\\_").get(1))] // TODO based on ImlPropertySerializer.getInputId
+		return inputsOfLevels
+	}
+	
+	protected def discardInputsAfterLoops(Map<Integer, List<String>> inputsOfLevels, String command) {
+		val loopOperators = (command.contains("verify")) ? #[ "FUTURE", "UNTIL" ] : #[ "GLOBAL", "RELEASE" ]
+		for (level : inputsOfLevels.keySet) {
+			val inputs = inputsOfLevels.get(level)
+			if (inputs.exists[loopOperators.contains(it.split("\\_").get(2))]) {// TODO based on ImlPropertySerializer.getInputId
+				for (greaterLevel : inputsOfLevels.keySet.filter[it > level]) {
+					val discardableInputs = inputsOfLevels.get(greaterLevel)
+					val size = discardableInputs.size
+					discardableInputs.clear
+					for (var i = 0; i < size; i++) {
+						discardableInputs += "[]" // Empty lists
+					}
+				}
+			}
+		}
 		return inputsOfLevels
 	}
 	

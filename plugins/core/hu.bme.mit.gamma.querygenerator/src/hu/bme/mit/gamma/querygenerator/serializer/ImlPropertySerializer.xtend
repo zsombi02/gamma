@@ -101,7 +101,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 			case UNTIL: { // Supported only under E
 				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
 						formula.inputId» in «rhsOperand.serializeFormula») && («
-							forallPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula»)))'''
+							forallRealPrefixName» «recordId» «formula.inputId» (fun r -> «lhsOperand.serializeFormula»)))'''
 			}
 			case RELEASE: { // Supported only under A
 				return '''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
@@ -240,6 +240,9 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 	
 	protected def getForallPrefixName() '''forall_prefix'''
 	protected def getExistsPrefixName() '''exists_prefix'''
+	protected def getForallRealPrefixName() '''forall_real_prefix'''
+	protected def getExistsRealPrefixName() '''exists_real_prefix'''
 	protected def getIsOnePrefixOfOtherName() '''is_one_prefix_of_other'''
+	protected def getEndsInRealLoopName() '''ends_in_real_loop'''
 	
 }

@@ -62,12 +62,14 @@ Accordingly, the following LTL properties (using a valid nested LTL (sub)formula
 
 - *X φ* ≡ *verify(fun e -> let r = run_cycle init e in φ)*;
 - *G φ* ≡ *verify(fun e -> let r = run init e in φ)*;
-- *F φ* is not supported (note that **F** φ ≡ ¬**G** ¬φ, but it works only for infinite paths or with an *instance* call (**E** quantifier));
+- *F φ* ≡ *verify(fun e -> (ends_in_real_loop r e) ==> exists_real_prefix init e (fun r -> φ))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds);
 - *ψ R φ* ≡ *verify(fun e -> let r = run init e in φ || exists_prefix init e (fun r -> ψ && φ)* (i.e., φ holds in every state (globally), or there exists a previous state where both ψ and φ hold);
-- *ψ U φ* is not supported (note that ψ **U** φ ≡ ¬(¬ψ **R** ¬φ), but it works only for infinite paths or with an *instance* call (**E** quantifier)).
+- *ψ U φ* ≡ *verify(fun e -> (ends_in_real_loop r e) ==> exists_real_prefix init e (fun r -> φ && forall_real_prefix init e (fun r -> ψ)))* (i.e., for the last state in each path ending in a loop, there exists a preceding state where φ holds, in each preceding state of which ψ holds);
 
-Note that the mapping would support the mapping of (a subset of) CTL* properties if Imandra allowed for the **nesting** of *verify* (**A** quantifier) and *instance* (**E** quantifier) calls as it would allow for the quantification of inputs and thus, (from a computation tree's perspective) paths from specific states during execution. For instance, _A G (E X φ)_ could be mapped to _verify(fun e -> let r = init in run r e in (instance(fun e -> run_cycle r e in φ)))_.
+Extra:
+- *ψ WU φ* ≡ *verify(fun e -> let r = run init e in ψ || exists_prefix init e (fun r -> φ)* (i.e., ψ holds in every state (globally), or there exists a previous state where φ holds).
 
+Note that in case of a property violation based on the F and U operators, we do not back-annotate the states "after" these temporal operators (i.e., we just return the loop, regardless of how the property was violated inside).
 
 
 
