@@ -90,7 +90,9 @@ class ImlVerifier extends AbstractVerifier {
 			val backAnnotator = new TraceBackAnnotator(gammaPackage, resultReader)
 			val trace = backAnnotator.synchronizeAndExecute
 			
-			// TODO check for loops
+			// Checking for loops (e.g., A F)
+			trace?.createCycleIfPossible
+			//
 			
 			if (!errorReader.error) {
 				if (trace === null && command.contains("verify") || trace !== null && command.contains("instance")) {

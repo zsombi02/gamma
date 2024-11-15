@@ -22,7 +22,6 @@ import org.eclipse.emf.ecore.EObject;
 import hu.bme.mit.gamma.expression.derivedfeatures.ExpressionModelDerivedFeatures;
 import hu.bme.mit.gamma.expression.model.ArgumentedElement;
 import hu.bme.mit.gamma.expression.model.BinaryExpression;
-import hu.bme.mit.gamma.expression.model.BooleanLiteralExpression;
 import hu.bme.mit.gamma.expression.model.Expression;
 import hu.bme.mit.gamma.expression.model.NotExpression;
 import hu.bme.mit.gamma.expression.model.ParameterDeclaration;
