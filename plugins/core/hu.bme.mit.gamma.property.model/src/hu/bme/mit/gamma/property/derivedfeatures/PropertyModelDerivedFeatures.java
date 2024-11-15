@@ -157,4 +157,25 @@ public class PropertyModelDerivedFeatures extends StatechartModelDerivedFeatures
 		}
 	}
 	
+	public static String seriliaze(UnaryPathOperator operator) {
+		switch (operator) {
+			case FUTURE: return "F";
+			case GLOBAL: return "G";
+			case NEXT: return "X";
+			default: throw new IllegalArgumentException("Not known operator: " + operator);
+		}
+	}
+	
+	public static String seriliaze(BinaryPathOperator operator) {
+		switch (operator) {
+			case BEFORE: return "B";
+			case RELEASE: return "R";
+			case STRONG_RELEASE: return "SR";
+			case UNTIL: return "U";
+			case WEAK_BEFORE: return "WB";
+			case WEAK_UNTIL: return "WU";
+			default: throw new IllegalArgumentException("Not known operator: " + operator);
+		}
+	}
+	
 }

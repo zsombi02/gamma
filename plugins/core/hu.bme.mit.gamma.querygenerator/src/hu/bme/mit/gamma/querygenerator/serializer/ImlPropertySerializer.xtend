@@ -90,7 +90,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 				case NEXT: '''let «recordId» = «Namings.SINGLE_RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
 				case GLOBAL: '''let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
 				case FUTURE: '''((«endsInRealLoopName» «recordId» «formula.inputId») ==> «
-						existsRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «operand.serializeFormula»))'''
+						existsRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «operand.serializeFormula»))'''
 				default: throw new IllegalArgumentException("Not supported operator")
 			}
 		}
@@ -99,7 +99,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 				case NEXT: '''let «recordId» = «Namings.SINGLE_RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
 				case FUTURE: '''let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «formula.inputId» in «operand.serializeFormula»'''
 				case GLOBAL: '''((«endsInRealLoopName» «recordId» «formula.inputId») ==> «
-						forallRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «operand.serializeFormula»))'''
+						forallRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «operand.serializeFormula»))'''
 				default: throw new IllegalArgumentException("Not supported operator")
 			}
 		}
@@ -123,7 +123,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 //					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let rs = «recordId» in «
 //							existsRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «
 //								rhsOperand.serializeFormula» && «
-//									forallRealPrefixName» rs «formula.inputId - does not capture the correct prefix» fun(«recordId» -> «lhsOperand.serializeFormula»)))'''
+//									forallRealPrefixName» rs «formula.inputId - does not capture the correct prefix» (fun «recordId» -> «lhsOperand.serializeFormula»)))'''
 				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
 		}
@@ -209,10 +209,10 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		val containingTemporalPathFormulas = formula.getAllContainersOfType(TemporalPathFormula)
 		
 		val operator = if (formula instanceof UnaryOperandPathFormula) {
-			formula.operator.toString
+			formula.operator.seriliaze
 		}
 		else if (formula instanceof BinaryOperandPathFormula) {
-			formula.operator.toString
+			formula.operator.seriliaze
 		}
 		else {
 			throw new IllegalArgumentException("Not known formula: " + formula)
@@ -232,7 +232,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		
 		val formulas = formula.relevantTemporalPathFormulas
 		val sameLevelFormulasMap = formulas.groupBy[
-				formula.getAllContainersOfType(TemporalPathFormula).size] // Same-level operators
+				it.getAllContainersOfType(TemporalPathFormula).size] // Same-level operators
 		for (sameLevelFormulas : sameLevelFormulasMap.values) {
 			val nexts = sameLevelFormulas.filter(UnaryOperandPathFormula).filter[it.operator == UnaryPathOperator.NEXT]
 			val nonNexts = sameLevelFormulas.reject[nexts.contains(it)]
