@@ -1,5 +1,6 @@
 package hu.bme.mit.gamma.ocra.transformation.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,7 +11,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +22,8 @@ public class OcraUtil {
 	// Singleton
 	public static final OcraUtil INSTANCE = new OcraUtil();
 	protected OcraUtil() {}
+	
+	protected final Logger logger = Logger.getLogger("GammaLogger");
 	
 	public Map<String, String> parseContractsFromFile(String fileUrl) {
 	    Map<String, String> componentContractsMap = new HashMap<>();
@@ -82,18 +87,12 @@ public class OcraUtil {
 
             while (inputPortMatcher.find()) {
                 String portName = inputPortMatcher.group(1);
-                String portType = inputPortMatcher.group(2);
-                values.add(portName + " : " + portType);
+                values.add(portName);
             }
 
             while (parameterMatcher.find()) {
                 String paramName = parameterMatcher.group(1);
-                String paramType = parameterMatcher.group(2);
-                System.out.print(": "+paramType+" :");
-                if (paramType.equals("event")) {
-					paramType = "boolean";
-				}
-                values.add(paramName + " : " + paramType);
+                values.add(paramName);
             }
 
             componentValues.computeIfAbsent(componentName, k -> new HashSet<>()).addAll(values);
@@ -101,8 +100,32 @@ public class OcraUtil {
 
         return componentValues;
     }
+    
+    public void processImplementationTemplateGenerationLogs(BufferedReader inputReader, BufferedReader errorReader, String successRegex, String failureRegex) {
+        try (Scanner resultReader = new Scanner(inputReader); Scanner errorReaderScanner = new Scanner(errorReader)) {
+            while (resultReader.hasNextLine()) {
+                String line = resultReader.nextLine();
+                if (line.matches(successRegex)) {
+                	logger.info("Ocra: " + line);
+                    return;
+                }
+            }
+            
+            resultReader.close();
 
-    public void copyContent(String basePath, Set<String> inVars, String componentName) {
+            while (errorReaderScanner.hasNextLine()) {
+                String line = errorReaderScanner.nextLine();
+                if (line.matches(failureRegex)) {
+                	logger.info("Ocra: " + line);
+                }
+            }
+            
+            errorReaderScanner.close();
+        }
+    }
+
+
+    public void parseIntoTemplate(String basePath, Set<String> inVars, String componentName) {
         String tempFileName = componentName + "_TEMP.smv";
         String nonTempFileName = componentName + ".smv";
         java.nio.file.Path tempFilePath = Paths.get(basePath, tempFileName);
@@ -149,7 +172,7 @@ public class OcraUtil {
 	
 	            Files.write(nonTempFilePath, nonTempContent);
         	} catch (NoSuchFileException e) {
-    			System.out.print("No Temp file found on path: " + tempFilePath.toString());
+        		logger.warning("No Temp file found on path: " + tempFilePath.toString());
     		}
         } catch (IOException e) {
             e.printStackTrace();
@@ -164,36 +187,13 @@ public class OcraUtil {
 		        for (File file : files) {
 		            if (file.isFile() && file.getName().contains("_TEMP")) {
 		                file.delete();
-		                System.out.println("Deleted file: " + file.getName());
+		                logger.info("Deleted temp file: " + file.getName());
 		            }
 		        }
 		    }
 		} else {
-		    System.out.println("Folder does not exist or is not a directory: " + folderPath);
+			logger.warning("Folder does not exist or is not a directory: " + folderPath);
 		}
     }
     
-    public List<String> extractPortNames(String filePath) {
-        List<String> portNames = new ArrayList<>();
-
-        try {
-            // Read file content
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-
-            // Define regex pattern for matching PORT names
-            Pattern portPattern = Pattern.compile("(INPUT|OUTPUT)\\s+PORT\\s+(\\w+)");
-
-            for (String line : lines) {
-                Matcher matcher = portPattern.matcher(line);
-                if (matcher.find()) {
-                    // Add the PORT name to the list (group 2 matches the port name)
-                    portNames.add(matcher.group(2));
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return portNames;
-    }
 }

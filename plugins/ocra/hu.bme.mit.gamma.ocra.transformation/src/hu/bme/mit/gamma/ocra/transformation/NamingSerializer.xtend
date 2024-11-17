@@ -13,8 +13,6 @@ import hu.bme.mit.gamma.statechart.interface_.Component
 
 class NamingSerializer extends Namings {
 
-    protected final String PROXY_INSTANCE_NAME = "_"
-
     def static dispatch String customizePortName(Event event, Port port, ComponentInstance instanceName) {
         if (port.interfaceRealization.realizationMode == RealizationMode.PROVIDED) '''«customizeOutputName(event, port, instanceName.customizeComponentName)»'''
         else '''«customizeInputName(event, port, instanceName.customizeComponentName)»'''
@@ -54,7 +52,7 @@ class NamingSerializer extends Namings {
 	}
 	
 	static private def String capitalizeFirstLetter(String input) {
-	    if (input == null || input.isEmpty) {
+	    if (input === null || input.isEmpty) {
 	        return input
 	    }
 	    return input.substring(0, 1).toUpperCase + input.substring(1)

@@ -29,6 +29,7 @@ import java.util.Set
 import static extension hu.bme.mit.gamma.statechart.derivedfeatures.StatechartModelDerivedFeatures.*
 import static extension hu.bme.mit.gamma.ocra.transformation.NamingSerializer.*
 import java.util.Scanner
+import java.util.logging.Logger
 
 class Gamma2OcraTransformerSerializer {
 	//
@@ -48,6 +49,8 @@ class Gamma2OcraTransformerSerializer {
 	protected final extension ExpressionModelFactory constraintModelFactory = ExpressionModelFactory.eINSTANCE
 	//
 	
+	
+	
 	new(Component component, String targetFolderUri, String fileName) {
 		this(component, #[], targetFolderUri, fileName)
 	}
@@ -66,14 +69,14 @@ class Gamma2OcraTransformerSerializer {
 		// Normal transformation
 		val gammaToOcraTransformer = ModelSerializer.INSTANCE
 		
-		val contracts = ocraUtil.parseContractsFromFile(targetFolderUri + File.separator + fileName.ocraContractsFileName)
+		val contracts = ocraUtil.parseContractsFromFile(targetFolderUri + File.separator + "." +fileName.ocraContractsFileName)
 		val ocraString = gammaToOcraTransformer.execute(component.containingPackage, contracts)
 		
 		//val serialize
 
 		val ocraFile = new File(targetFolderUri + File.separator + fileName.ocraFileName)
 		ocraFile.saveString(ocraString)
-		verifyQuery(ocraFile)
+		createImplementationTemplates(ocraFile)
 		//
 		
 		// SMV transformation for each component
@@ -94,7 +97,6 @@ class Gamma2OcraTransformerSerializer {
 			val name = fqnInstanceName + "_TEMP"
 			val List<Expression> arguments = statechartInstance.arguments.map[evaluateExpression(it)]
 			statechart.name = fqnInstanceName
-			//statechart.name = "tesztKisbetu"
 						
 			val transformer = new Gamma2XstsNuxmvTransformerSerializer(statechart, arguments , targetFolderUri, name)
 			transformer.execute()
@@ -124,7 +126,7 @@ class Gamma2OcraTransformerSerializer {
 	    	val componentName = entry.getKey()
 	    	val inVarSet = entry.getValue()
 	    
-	    	copyContent(targetFolderUri, inVarSet, componentName)
+	    	parseIntoTemplate(targetFolderUri, inVarSet, componentName)
 		}
 		
 		deleteTempFiles(targetFolderUri)
@@ -132,7 +134,7 @@ class Gamma2OcraTransformerSerializer {
 					
 	}
 	
-	def verifyQuery(File ocraFile) {
+	def createImplementationTemplates(File ocraFile) {
 		
 		//TODO add the OCRA_HOME variable to your system path
 		val ocraPath = System.getenv("OCRA_HOME") + File.separator + "ocra-win64.exe"
@@ -148,34 +150,18 @@ class Gamma2OcraTransformerSerializer {
 		'''
 		fileUtil.saveString(commandFile, serializedCommand)
 		
-		val ocraCommand = #[ocraPath] + #["-source", commandFile.absolutePath]
 				
 		try {
-			val process =  Runtime.getRuntime().exec(ocraCommand, null, ocraFile.parentFile)
-			val resultReader = new Scanner(process.inputReader)
-			val errorReader = new Scanner(process.errorReader)
-			//TODO lecsekkolni error-ra
-			val successRegex = ".*" + "oss specification"+ ".*"
-			//val failureRegex = "line "+ ".*"
 			
-			while (resultReader.hasNextLine) {
-				val line = resultReader.nextLine
-				if (line.matches(successRegex)) {
-					System.out.println(line)
-					return
-				}	
-			}
-//			while (errorReader.hasNextLine) {
-//				val line = resultReader.nextLine
-//				if (line.matches(successRegex)) {
-//					System.out.println(line)
-//					return
-//				}	
-//			}
-			//System.out.println("Error!")
-		} catch (Exception e) {
-			throw e
-		}
+			val ocraCommand = #[ocraPath] + #["-source", commandFile.absolutePath]
+	        val process = Runtime.getRuntime().exec(ocraCommand, null, ocraFile.parentFile)
+	        val successRegex = ".*" + "Success:" + ".*"
+	        val failureRegex = ".*" + "Error at line " + ".*"
+	        
+	        processImplementationTemplateGenerationLogs(process.inputReader, process.errorReader, successRegex, failureRegex)
+	    } catch (Exception e) {
+	    	throw e
+	    }
 		
 	}
 	

@@ -833,7 +833,7 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 		        String serializedContracts = ((OcraPropertySerializer) propertySerializer).serializeContracts(propertyPackage.getContracts(), propertyPackage.getComponent());
 		        //String combinedSerialization = serializedFormulas + "\n" + serializedContracts;
 
-				fileUtil.saveString(targetFolderUri + File.separator +
+				fileUtil.saveString(targetFolderUri + File.separator + "." +
 						fileName + "." + getQueryFileExtension(), serializedContracts);
 			}
 		}
