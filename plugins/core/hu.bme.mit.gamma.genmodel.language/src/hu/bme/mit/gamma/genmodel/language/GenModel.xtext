@@ -43,7 +43,7 @@ Task returns Task:
 		AdaptiveBehaviorConformanceChecking | PhaseStatechartGeneration |
 		Verification | TraceReplayModelGeneration | Slicing | StatechartContractTestGeneration |
 		StatechartContractGeneration | TraceGeneration  | FaultTreeGeneration | FmeaTableGeneration |
-		ModelMutation | MutationBasedTestGeneration
+		ModelMutation | MutationBasedTestGeneration | SemanticDiff
 ;
 
 //YakinduCompilation returns YakinduCompilation:
@@ -531,6 +531,16 @@ MutationBasedTestGeneration returns MutationBasedTestGeneration:
 			'trace-folder' ':' traceFolders+=STRING |
 			'test-class-name-pattern' ':' testClassNamePattern=STRING |
 			'pattern-class-name' ':' patternClassNames+=STRING
+		)*
+	'}'
+;
+
+SemanticDiff returns SemanticDiff:
+	{SemanticDiff} 'semantic-diff' '{'
+		(
+			'folder' ':' targetFolder+=STRING |
+			'file' ':' fileName+=STRING |
+			'language' ':' analysisLanguages+=AnalysisLanguage
 		)*
 	'}'
 ;

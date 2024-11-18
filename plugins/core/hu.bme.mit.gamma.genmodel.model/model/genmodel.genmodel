@@ -246,5 +246,8 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute genmodel.ecore#//MutationBasedTestGeneration/testClassNamePattern"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute genmodel.ecore#//MutationBasedTestGeneration/patternClassNames"/>
     </genClasses>
+    <genClasses ecoreClass="genmodel.ecore#//SemanticDiff">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute genmodel.ecore#//SemanticDiff/analysisLanguages"/>
+    </genClasses>
   </genPackages>
 </genmodel:GenModel>

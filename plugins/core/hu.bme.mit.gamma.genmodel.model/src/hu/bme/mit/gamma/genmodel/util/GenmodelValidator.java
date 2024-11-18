@@ -56,6 +56,7 @@ import hu.bme.mit.gamma.genmodel.model.OrchestratingConstraint;
 import hu.bme.mit.gamma.genmodel.model.PhaseStatechartGeneration;
 import hu.bme.mit.gamma.genmodel.model.SafetyAssessment;
 import hu.bme.mit.gamma.genmodel.model.SchedulingConstraint;
+import hu.bme.mit.gamma.genmodel.model.SemanticDiff;
 import hu.bme.mit.gamma.genmodel.model.StateCoverage;
 import hu.bme.mit.gamma.genmodel.model.StatechartCompilation;
 import hu.bme.mit.gamma.genmodel.model.StatechartContractGeneration;
@@ -100,8 +101,15 @@ public class GenmodelValidator extends ExpressionModelValidator {
 		Collection<ValidationResultMessage> validationResultMessages = new ArrayList<ValidationResultMessage>();
 		
 		List<String> fileNames = task.getFileName();
-		if (fileNames.size() > 1) {
-			validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR, 
+		if (task instanceof SemanticDiff) {
+			if (fileNames.size() != 2) {
+				validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR,
+					"Two file names must be specified among which a semantic diff is computed",
+						new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME)));
+			}
+		}
+		else if (fileNames.size() > 1) {
+			validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR,
 				"At most one file name can be specified",
 					new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME)));
 		}

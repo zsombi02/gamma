@@ -19,13 +19,14 @@ import java.util.logging.Logger
 class ImlSemanticDiffer {
 	//
 	public static final String IMANDRA_TEMPORARY_COMMAND_FOLDER = ".imandra"
-	public final String DIFF_FUNCTION_NAME = "trans"
+	final String DIFF_FUNCTION_NAME = "trans"
+	final String NEW_DIFF_FUNCTION_NAME = DIFF_FUNCTION_NAME + 2
 	//
 	protected final static extension FileUtil fileUtil = FileUtil.INSTANCE
 	protected final Logger logger = Logger.getLogger("GammaLogger")
 	//
 	
-	def execute(Object traceability, String parameters, File modelFile, File modelFile2) {
+	def execute(Object traceability, File modelFile, File modelFile2) {
 		val src = modelFile.loadString
 		val src2 = modelFile2.loadString
 		
@@ -36,11 +37,14 @@ class ImlSemanticDiffer {
 			«trans2»
 		'''
 		
+		val DIFF_PREDICATE_NAME = "diff"
 		val diffFunction = '''
-			let diff (r : t) = ((«DIFF_FUNCTION_NAME» r) <> («DIFF_FUNCTION_NAME»2 r))
+			let «DIFF_PREDICATE_NAME» (r : t) = ((«DIFF_FUNCTION_NAME» r) <> («NEW_DIFF_FUNCTION_NAME» r));;
 		'''
 		
-		val decomp = '''Modular_decomp.top ~assuming:"diff" "«DIFF_FUNCTION_NAME»2";;'''
+		val decomp = '''
+			Modular_decomp.top ~assuming:"«DIFF_PREDICATE_NAME»" "«NEW_DIFF_FUNCTION_NAME»";;
+		'''
 		
 		val cmd = ImlApiHelper.getBasicCall('''
 			«model»
@@ -86,13 +90,17 @@ class ImlSemanticDiffer {
 	}
 	
 	protected def extractTransFunction(String src) {
-		val start = src.indexOf('''let «DIFF_FUNCTION_NAME» ''')
-		val offset = '''let «DIFF_FUNCTION_NAME» '''.length 
+		val START_STRING = "let init ="
+		
+		val start = src.indexOf(START_STRING)
+		val offset = START_STRING.length
 		val end = src.indexOf("let env ")
 		
-		val newStart = '''let «DIFF_FUNCTION_NAME»2 '''
+		val newStart = '''let init2 ='''
 		
-		return newStart + src.substring(start + offset, end)
+		val newSrc = newStart + src.substring(start + offset, end)
+				.replaceAll('''let «DIFF_FUNCTION_NAME» ''', '''let «NEW_DIFF_FUNCTION_NAME» ''')
+		return newSrc
 	}
 	
 }
