@@ -14,14 +14,17 @@ import hu.bme.mit.gamma.expression.model.Declaration
 import hu.bme.mit.gamma.expression.model.EnumerationLiteralDefinition
 import hu.bme.mit.gamma.expression.model.EnumerationLiteralExpression
 import hu.bme.mit.gamma.expression.model.TypeDeclaration
+import hu.bme.mit.gamma.util.GammaEcoreUtil
 import hu.bme.mit.gamma.xsts.model.Action
 import hu.bme.mit.gamma.xsts.model.HavocAction
 import hu.bme.mit.gamma.xsts.model.NonDeterministicAction
 import hu.bme.mit.gamma.xsts.util.XstsActionUtil
+import org.eclipse.emf.ecore.EObject
 
 class Namings {
 	//
 	protected static final extension XstsActionUtil xStsActionUtil = XstsActionUtil.INSTANCE
+	protected static final extension GammaEcoreUtil ecoreUtil = GammaEcoreUtil.INSTANCE
 	//
 	
 	public static final String GLOBAL_RECORD_TYPE_NAME = "t"
@@ -60,10 +63,21 @@ class Namings {
 	
 	def static customizeHavocField(HavocAction havoc) '''«havoc.lhs.declaration.customizeName»_«havoc.randomizeName»'''
 	
-	def static customizeChoice(NonDeterministicAction choice) '''choice_«choice.randomizeName»'''
+	def static customizeChoice(NonDeterministicAction choice) '''choice_«choice.uniqueName»''' // Deterministic name - needed for the reuse of the 'r' record during semantic diff computation
 	
 	def static customizeHoistedFunctionName(Action action) '''h_«action.randomizeName»'''
 	
-	protected def static randomizeName(Object object) { object.hashCode.toString.replaceAll("-", "0") }
+	protected def static randomizeName(EObject object) {
+		return object.hashCode.toString.replaceAll("-", "0")
+	}
+	
+	protected def static uniqueName(EObject object) {
+		if (object.eContainer === null) {
+			return object.randomizeName
+		}
+		val containerSize = object.getAllContainersOfType(EObject).size
+		val index = object.indexOrZero
+		return containerSize + "_" + index
+	}
 	
 }

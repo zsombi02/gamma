@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018-2023 Contributors to the Gamma project
+ * Copyright (c) 2018-2024 Contributors to the Gamma project
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -22,6 +22,7 @@ import hu.bme.mit.gamma.genmodel.model.GenModel
 import hu.bme.mit.gamma.genmodel.model.InterfaceMapping
 import hu.bme.mit.gamma.genmodel.model.OrchestratingConstraint
 import hu.bme.mit.gamma.genmodel.model.SafetyAssessment
+import hu.bme.mit.gamma.genmodel.model.SemanticDiff
 import hu.bme.mit.gamma.genmodel.model.StatechartCompilation
 import hu.bme.mit.gamma.genmodel.model.StatechartContractGeneration
 import hu.bme.mit.gamma.genmodel.model.Task
@@ -75,6 +76,11 @@ class GenModelValidator extends AbstractGenModelValidator {
 	@Check
 	def checkTasks(TraceReplayModelGeneration modelGeneration) {
 		handleValidationResultMessage(genmodelValidator.checkTasks(modelGeneration))
+	}
+	
+	@Check
+	def checkTasks(SemanticDiff semanticDiff) {
+		handleValidationResultMessage(genmodelValidator.checkTasks(semanticDiff))
 	}
 	
 	@Check
