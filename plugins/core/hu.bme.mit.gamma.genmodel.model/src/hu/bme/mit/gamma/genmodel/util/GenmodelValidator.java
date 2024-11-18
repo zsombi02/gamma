@@ -121,6 +121,15 @@ public class GenmodelValidator extends ExpressionModelValidator {
 //						new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME)));
 //			}
 //		}
+		File resourceFile = ecoreUtil.getFile(task.eResource());
+		for (String modelFile : fileNames) {
+			if (!fileUtil.isValidRelativeFile(resourceFile, modelFile)) {
+				int index = fileNames.indexOf(modelFile);
+				validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR, 
+					"This is not a valid relative path to a model file: " + modelFile,
+						new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME, index)));
+			}
+		}
 		
 		if (task.getTargetFolder().size() > 1) {
 			validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR, 
@@ -213,14 +222,7 @@ public class GenmodelValidator extends ExpressionModelValidator {
 				"A single model file must be specified",
 					new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME)));
 		}
-		for (String modelFile : modelFiles) {
-			if (!fileUtil.isValidRelativeFile(resourceFile, modelFile)) {
-				int index = modelFiles.indexOf(modelFile);
-				validationResultMessages.add(new ValidationResultMessage(ValidationResult.ERROR, 
-					"This is not a valid relative path to a model file: " + modelFile,
-						new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME, index)));
-			}
-		}
+
 		List<String> queryFiles = verification.getQueryFiles();
 		List<PropertyPackage> propertyPackages = verification.getPropertyPackages();
 		if (queryFiles.size() + propertyPackages.size() < 1) {
