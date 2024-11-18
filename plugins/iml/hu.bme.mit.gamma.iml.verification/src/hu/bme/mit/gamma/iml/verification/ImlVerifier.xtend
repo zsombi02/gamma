@@ -28,7 +28,7 @@ class ImlVerifier extends AbstractVerifier {
 	//
 	
 	override verifyQuery(Object traceability, String parameters, File modelFile, File queryFile) {
-		val query = fileUtil.loadString(queryFile)
+		val query = queryFile.loadString
 		var Result result = null
 		
 		for (singleQuery : query.splitLines) {
@@ -49,7 +49,7 @@ class ImlVerifier extends AbstractVerifier {
 	}
 	
 	override verifyQuery(Object traceability, String parameters, File modelFile, String query) {
-		val modelString = fileUtil.loadString(modelFile)
+		val modelString = modelFile.loadString
 		
 		val command = query.substring(0, query.indexOf("("))
 		val commandelssQuery = query.substring(command.length)
@@ -62,7 +62,7 @@ class ImlVerifier extends AbstractVerifier {
 		val pythonFile = new File(parentFile, '''.imandra-commands-«Thread.currentThread.name».py''')
 		pythonFile.deleteOnExit
 		
-		val serializedPython = modelString.getTracedCode(command, argument, postArgument, commandelssQuery)
+		val serializedPython = modelString.getImlApiCode(command, argument, postArgument, commandelssQuery)
 		fileUtil.saveString(pythonFile, serializedPython)
 		
 		// python3 .\imandra-test.py
@@ -115,34 +115,9 @@ class ImlVerifier extends AbstractVerifier {
 		return traceResult
 	}
 	
-	protected def String getBasicCode(String modelString, String command, String commandlessQuery) '''
-		import imandra
-		
-		with imandra.session() as session:
-			session.eval("""«System.lineSeparator»«modelString»""")
-			result = session.«command»("«commandlessQuery»")
-			print(result)
-	'''
-	
-	protected def String getTracedCode(String modelString, String command,
-			String arguments, String postArguments, String commandlessQuery) '''
-		import imandra.auth
-		import imandra.instance
-		import imandra_http_api_client
-		
-		# Starting an Imandra instance
-		
-		auth = imandra.auth.Auth()
-		instance = imandra.instance.create(auth, None, "imandra-http-api")
-		
-		config = imandra_http_api_client.Configuration(
-		    host = instance['new_pod']['url'],
-		    access_token = instance['new_pod']['exchange_token'],
-		)
-		
-		# Doing the low-level call to the API
-		
-		src = """
+	protected def String getImlApiCode(String modelString, String command,
+			String arguments, String postArguments, String commandlessQuery) {
+		return ImlApiHelper.getBasicCall('''
 			«modelString»;;
 			«commandlessQuery.utilityMethods»
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;;
@@ -154,35 +129,8 @@ class ImlVerifier extends AbstractVerifier {
 				.values»«
 					FOR inputOfLevels : inputsOfLevels»«IF inputOfLevels != "[]"»CX.«inputOfLevels»«ELSE»[]«ENDIF» «ENDFOR»«ENDFOR»in
 			run init path;;
-		"""
-		
-		with imandra_http_api_client.ApiClient(config) as api_client:
-		    api_instance = imandra_http_api_client.DefaultApi(api_client)
-		    req = {
-		        "src": src,
-		        "syntax": "iml",
-		        "hints": {
-		            "method": {
-		                "type": "auto"
-		            }
-		        }
-		    }
-		    request_src = imandra_http_api_client.EvalRequestSrc.from_dict(req)
-		    try:
-		        api_response = api_instance.eval_with_http_info(request_src)
-		    except ApiException as e:
-		        print("Exception when calling DefaultApi->eval_with_http_info: %s\n" % e)
-		
-		# json parse the raw_data yourself and take the raw_stdio
-		
-		import json
-		raw_response = json.loads(api_response.raw_data)
-		print(raw_response.get("raw_stdio"))
-		
-		# Delete the Imandra instance
-		
-		imandra.instance.delete(auth, instance['new_pod']['id'])
-	'''
+		''')
+	}
 	
 	protected def getUtilityMethods(String query) { // TODO move to Prop-ser
 		val builder = new StringBuilder
