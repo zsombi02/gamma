@@ -212,9 +212,9 @@ class ImlSemanticDiffer {
 			println("  Constraint:")
 			println("    " + constraint.replaceAll(System.lineSeparator, System.lineSeparator + "    "))
 			println("  Original invariant:")
-			println("    " + invariant1.join(System.lineSeparator + "      "))
+			println("    " + invariant1.join(System.lineSeparator + "    "))
 			println("  New invariant:")
-			println("    " + invariant2.join(System.lineSeparator + "      "))
+			println("    " + invariant2.join(System.lineSeparator + "    "))
 			println()
 		}
 	}

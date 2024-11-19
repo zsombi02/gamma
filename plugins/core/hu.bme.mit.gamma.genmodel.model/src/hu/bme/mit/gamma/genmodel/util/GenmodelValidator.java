@@ -253,6 +253,13 @@ public class GenmodelValidator extends ExpressionModelValidator {
 		validationResultMessages.addAll(
 				checkRelativeFilePaths(semanticDiff, semanticDiff.getFileName(), GenmodelModelPackage.Literals.TASK__FILE_NAME));
 		
+		if (semanticDiff.getFileName().size() > 1) {
+			validationResultMessages.add(
+				new ValidationResultMessage(ValidationResult.INFO,
+					"Make sure that this new model variant does not contain new states, inputs or variables compared to the original version",
+						new ReferenceInfo(GenmodelModelPackage.Literals.TASK__FILE_NAME, 1)));
+		}
+		
 		return validationResultMessages;
 	}
 
