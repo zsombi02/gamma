@@ -13,6 +13,8 @@ package hu.bme.mit.gamma.iml.verification
 import hu.bme.mit.gamma.util.FileUtil
 import hu.bme.mit.gamma.util.ScannerLogger
 import java.io.File
+import java.util.List
+import java.util.Map
 import java.util.Scanner
 import java.util.logging.Logger
 
@@ -27,6 +29,7 @@ class ImlSemanticDiffer {
 	//
 	
 	def execute(Object traceability, File modelFile, File modelFile2) {
+		val grandparentFile = modelFile.parentFile
 		val src = modelFile.loadString
 		val src2 = modelFile2.loadString
 		
@@ -42,19 +45,36 @@ class ImlSemanticDiffer {
 			let «DIFF_PREDICATE_NAME» (r : t) = ((«DIFF_FUNCTION_NAME» r) <> («NEW_DIFF_FUNCTION_NAME» r));;
 		'''
 		
-		val decomp = '''
-			Modular_decomp.top ~assuming:"«DIFF_PREDICATE_NAME»" "«NEW_DIFF_FUNCTION_NAME»";;
-		'''
+//		val decomp = '''
+//			Modular_decomp.top ~assuming:"«DIFF_PREDICATE_NAME»" "«NEW_DIFF_FUNCTION_NAME»";;
+//		'''
 		
-		val cmd = ImlApiHelper.getBasicCall('''
+		val cmd1 = ImlApiHelper.getDecompoiseCall(
+		'''
 			«model»
 			«diffFunction»
-			«decomp»
-		''')
+		''', DIFF_FUNCTION_NAME, DIFF_PREDICATE_NAME)
+		
+		val cmd2 = ImlApiHelper.getDecompoiseCall(
+		'''
+			«model»
+			«diffFunction»
+		''', NEW_DIFF_FUNCTION_NAME, DIFF_PREDICATE_NAME)
 		
 		///
 		
-		val parentFile = modelFile.parentFile + File.separator + IMANDRA_TEMPORARY_COMMAND_FOLDER
+		val result1 = grandparentFile.execute(cmd1)
+		val result2 = grandparentFile.execute(cmd2)
+		
+		val diff = result1.extractDiff(result2)
+		
+		diff.print
+		
+		return null
+	}
+	
+	protected def execute(File grandparentFile, String cmd) {
+		val parentFile = grandparentFile + File.separator + IMANDRA_TEMPORARY_COMMAND_FOLDER
 		val pythonFile = new File(parentFile, '''.imandra-commands-«Thread.currentThread.name».py''')
 		pythonFile.deleteOnExit
 		pythonFile.saveString(cmd)
@@ -77,26 +97,139 @@ class ImlSemanticDiffer {
 					true)
 			errorReader.start
 			
-			while (resultReader.hasNextLine) {
-				println(resultReader.nextLine)
+			val result = resultReader.parseRegion
+			if (errorReader.error) {
+				throw new IllegalArgumentException("Region decomposition error")
 			}
 			
-			logger.info("Quitting Imandra session")
+			return result
 		} finally {
+			logger.info("Quitting Imandra session")
+			
 			resultReader?.close
 			errorReader?.cancel
 			process?.destroyForcibly
 		}
 	}
 	
+	enum ParseRegionStates { CONSTRAINT, INVARIANT }
+	protected def parseRegion(Scanner result) {
+		val regions = newLinkedHashMap
+		
+		var state = ParseRegionStates.CONSTRAINT
+		
+		val constraints = new StringBuilder
+		val invariant = new StringBuilder
+		while (result.hasNextLine) {
+			val line = result.nextLine.trim
+			if (line.startsWith(ImlApiHelper.REGION_START)) {
+				if (!constraints.empty) {
+					regions += constraints.toString -> invariant.toString
+				}
+				constraints.length = 0
+				invariant.length = 0
+			}
+			else if (line.startsWith(ImlApiHelper.CONSTRAINT_START)) {
+				state = ParseRegionStates.CONSTRAINT
+			}
+			else if (line.startsWith(ImlApiHelper.INVARIANT_START)) {
+				state = ParseRegionStates.INVARIANT
+			}
+			else {
+				val builder = (state == ParseRegionStates.CONSTRAINT) ? constraints : invariant
+				builder.append(line + System.lineSeparator)
+			}
+		}
+		
+		regions += constraints.toString -> invariant.toString
+		
+		//
+		val lastKey = regions.keySet.last // "Instance killed"
+		val lastValue = regions.get(lastKey)
+		var lastIndex = (lastValue.lastIndexOf("}") < 0) ? lastValue.length : lastValue.lastIndexOf("}") + 1
+		regions.replace(lastKey, lastValue.substring(0, lastIndex))
+		val firstKey = regions.keySet.head // "Instance created"
+		regions.keySet.remove(firstKey)
+		//
+		
+		return regions
+	}
+	
+	protected def extractDiff(Map<String, String> result1, Map<String, String> result2) {
+		// Maybe a standalone Diff lib would work better?
+		val diffs = newLinkedHashMap
+		
+		for (key1 : result1.keySet) {
+			val value2 = result2.get(key1)
+			if (value2 !== null) {
+				val value1 = result1.get(key1)
+				// Found an entry where constraints are the same
+				val diff = value1.extractDiff(value2) // Diffing the invariants
+				diffs += key1 -> diff
+			}
+		}
+		
+		return diffs
+	}
+	
+	protected def extractDiff(String result1, String result2) {
+		val entries1 = result1.splitInvariant
+		val entries2 = result2.splitInvariant
+		
+		val intersection = newHashSet
+		intersection += entries1
+		intersection.retainAll(entries2)
+		
+		entries1 -= intersection
+		entries2 -= intersection
+		
+		return entries1 -> entries2
+	}
+
+	protected def splitInvariant(String result) {
+		val firstI = result.indexOf("{")
+		val lastI = result.indexOf("}")
+		
+		val parsedResult = result.substring(firstI + 1, lastI)
+		val split = newArrayList
+		split += parsedResult.split(";")
+				.map[it.trim]
+				
+		return split
+	}
+	
+	//
+	
+	protected def print(Map<String,
+			? extends Pair<? extends List<String>, ? extends List<String>>> diffs) {
+		println("Semantic diff:")
+		for (constraint : diffs.keySet) {
+			val value = diffs.get(constraint)
+			
+			val invariant1 = value.key
+			val invariant2 = value.value
+			
+			println("  Constraint:")
+			println("    " + constraint.replaceAll(System.lineSeparator, System.lineSeparator + "    "))
+			println("  Original invariant:")
+			println("    " + invariant1.join(System.lineSeparator + "      "))
+			println("  New invariant:")
+			println("    " + invariant2.join(System.lineSeparator + "      "))
+			println()
+		}
+	}
+	
+	//
+	
 	protected def extractTransFunction(String src) {
-		val START_STRING = "let init ="
+		val START_FUNCTION_NAME = "init"
+		val START_STRING = '''let «START_FUNCTION_NAME» ='''
 		
 		val start = src.indexOf(START_STRING)
 		val offset = START_STRING.length
 		val end = src.indexOf("let env ")
 		
-		val newStart = '''let init2 ='''
+		val newStart = '''let «START_FUNCTION_NAME»2 ='''
 		
 		val newSrc = newStart + src.substring(start + offset, end)
 				.replaceAll('''let «DIFF_FUNCTION_NAME» ''', '''let «NEW_DIFF_FUNCTION_NAME» ''')
