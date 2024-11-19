@@ -11,10 +11,12 @@
 package hu.bme.mit.gamma.iml.verification
 
 import hu.bme.mit.gamma.util.FileUtil
+import hu.bme.mit.gamma.util.JavaUtil
 import hu.bme.mit.gamma.util.ScannerLogger
 import java.io.File
 import java.util.List
 import java.util.Map
+import java.util.Map.Entry
 import java.util.Scanner
 import java.util.logging.Logger
 
@@ -24,7 +26,8 @@ class ImlSemanticDiffer {
 	final String DIFF_FUNCTION_NAME = "trans"
 	final String NEW_DIFF_FUNCTION_NAME = DIFF_FUNCTION_NAME + 2
 	//
-	protected final static extension FileUtil fileUtil = FileUtil.INSTANCE
+	protected final extension JavaUtil javaUtil = JavaUtil.INSTANCE
+	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
 	protected final Logger logger = Logger.getLogger("GammaLogger")
 	//
 	
@@ -45,10 +48,6 @@ class ImlSemanticDiffer {
 			let «DIFF_PREDICATE_NAME» (r : t) = ((«DIFF_FUNCTION_NAME» r) <> («NEW_DIFF_FUNCTION_NAME» r));;
 		'''
 		
-//		val decomp = '''
-//			Modular_decomp.top ~assuming:"«DIFF_PREDICATE_NAME»" "«NEW_DIFF_FUNCTION_NAME»";;
-//		'''
-		
 		val cmd1 = ImlApiHelper.getDecompoiseCall(
 		'''
 			«model»
@@ -64,6 +63,7 @@ class ImlSemanticDiffer {
 		///
 		
 		val result1 = grandparentFile.execute(cmd1)
+//		Thread.sleep(10000)
 		val result2 = grandparentFile.execute(cmd2)
 		
 		val diff = result1.extractDiff(result2)
@@ -183,7 +183,7 @@ class ImlSemanticDiffer {
 		entries1 -= intersection
 		entries2 -= intersection
 		
-		return entries1 -> entries2
+		return Map.entry(entries1, entries2)
 	}
 
 	protected def splitInvariant(String result) {
@@ -200,9 +200,44 @@ class ImlSemanticDiffer {
 	
 	//
 	
-	protected def print(Map<String,
-			? extends Pair<? extends List<String>, ? extends List<String>>> diffs) {
+	protected def print(Map<String, ? extends Entry<? extends List<String>, ? extends List<String>>> diffs) {
 		println("Semantic diff:")
+		
+		val invert = true
+		if (invert) {
+			val semDiffs = newLinkedHashMap
+			for (entries : diffs.entrySet) {
+				val key = entries.key
+				val value = entries.value
+				
+				val invariant = '''
+					Original invariant:
+					  «value.key.join(System.lineSeparator)»
+					New invariant:
+					  «value.value.join(System.lineSeparator)»
+				'''
+				if (semDiffs.containsKey(invariant)) {
+					val constraint = semDiffs.get(invariant)
+					semDiffs.replace(invariant, #[constraint, key]
+							.join(System.lineSeparator + "Constraint:" + System.lineSeparator))
+				}
+				else {
+					semDiffs += invariant -> key
+				}
+			}
+			
+			for (invariant : semDiffs.keySet) {
+				val constraint = diffs.get(invariant)
+				
+				println("  Constraint:")
+				println("    " + constraint)
+				println("  " + invariant.replaceAll(System.lineSeparator, System.lineSeparator + "    "))
+				println()
+			}
+			
+			return
+		}
+		
 		for (constraint : diffs.keySet) {
 			val value = diffs.get(constraint)
 			

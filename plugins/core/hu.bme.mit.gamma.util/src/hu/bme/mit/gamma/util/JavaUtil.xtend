@@ -146,7 +146,7 @@ class JavaUtil {
 		return castedMap
 	}
 	
-	def <K, V> Collection<Entry<V, K>> invert(Collection<? extends Entry<K, V>> entrySet) {
+	def <K, V> Collection<Entry<V, K>> invert(Iterable<? extends Entry<K, V>> entrySet) {
 		val entries = <Entry<V, K>>newArrayList
 		for (entry : entrySet) {
 			entries += new SimpleEntry(entry.value, entry.key)
