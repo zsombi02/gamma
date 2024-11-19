@@ -80,7 +80,7 @@ class ImlVerifier extends AbstractVerifier {
 			resultReader = new Scanner(process.inputReader)
 			errorReader = new ScannerLogger(
 					new Scanner(process.errorReader),
-					#["imandra_http_api_client.exceptions.ServiceException", "HTTP Error", "urllib.error.HTTPError", "ValueError"],
+					#["imandra_http_api_client.exceptions.ServiceException", "HTTP Error", "urllib.error.HTTPError", "ValueError", "Error:"],
 					true)
 			errorReader.start
 			

@@ -90,7 +90,7 @@ class ScannerLogger implements Runnable {
 				line.storeLine
 			}
 			if (printLines) {
-				logger.info(line)
+				logger.severe(line)
 //				println(line)
 			}
 		}

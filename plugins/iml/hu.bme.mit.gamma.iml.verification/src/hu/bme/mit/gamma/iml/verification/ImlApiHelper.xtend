@@ -22,6 +22,7 @@ class ImlApiHelper {
 	'''
 	
 	static def String getBasicCall(String src) '''
+		import sys
 		import imandra.auth
 		import imandra.instance
 		import imandra_http_api_client
@@ -64,6 +65,7 @@ class ImlApiHelper {
 		import json
 		raw_response = json.loads(api_response.raw_data)
 		print(raw_response.get("raw_stdio"))
+		print(raw_response.get("error"), file=sys.stderr)
 		
 		# Delete the Imandra instance
 		
