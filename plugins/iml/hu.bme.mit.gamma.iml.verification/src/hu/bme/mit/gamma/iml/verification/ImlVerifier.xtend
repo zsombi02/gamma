@@ -191,11 +191,34 @@ class ImlVerifier extends AbstractVerifier {
 			''')
 		}
 		if (query.contains("ends_in_real_loop ")) {
+//			builder.append('''
+//				let rec get_last_element l =
+//					match l with
+//					| [] -> raise exception
+//					| [last] -> ([], last)
+//					| hd :: tl ->
+//						let (sub_hd, last) = get_last_element tl in
+//						(hd :: sub_hd, last);;
+//			''')
 			builder.append('''
 				let ends_in_real_loop r e =
-					let end_state = run r e in
-					exists_real_prefix r e (fun r -> r = end_state);;
-			''') // Note exists_real_prefix here; exists_prefix would allow stuttering...
+					match e with
+					| [] -> false
+					| _ ->
+						let e_reversed = List.rev e in
+						match e_reversed with
+						| [] -> false (* Unreachable *)
+						| tl :: hd_reversed -> let hd = List.rev hd_reversed in
+							let before_final_state = run r hd in
+							let final_state = run_cycle before_final_state tl in
+							before_final_state <> final_state &&
+								exists_real_prefix r e (fun r -> r = final_state);;
+			''') // We do not allow a loop between the last two states
+//			builder.append('''
+//				let ends_in_real_loop r e =
+//					let end_state = run r e in
+//					exists_real_prefix r e (fun r -> r = end_state);;
+//			''')
 		}
 		
 		builder.append('''
