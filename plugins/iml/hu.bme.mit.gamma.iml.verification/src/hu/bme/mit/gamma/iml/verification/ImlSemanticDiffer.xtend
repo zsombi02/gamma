@@ -108,7 +108,7 @@ class ImlSemanticDiffer {
 			
 			resultReader?.close
 			errorReader?.cancel
-			process?.destroyForcibly
+			process?.destroy
 		}
 	}
 	
@@ -212,9 +212,9 @@ class ImlSemanticDiffer {
 				
 				val invariant = '''
 					Original invariant:
-					  «value.key.join(System.lineSeparator)»
+					  «value.key.join(System.lineSeparator + "  ")»
 					New invariant:
-					  «value.value.join(System.lineSeparator)»
+					  «value.value.join(System.lineSeparator + "  ")»
 				'''
 				if (semDiffs.containsKey(invariant)) {
 					val constraint = semDiffs.get(invariant)
@@ -227,11 +227,11 @@ class ImlSemanticDiffer {
 			}
 			
 			for (invariant : semDiffs.keySet) {
-				val constraint = diffs.get(invariant)
+				val constraint = semDiffs.get(invariant)
 				
 				println("  Constraint:")
-				println("    " + constraint)
-				println("  " + invariant.replaceAll(System.lineSeparator, System.lineSeparator + "    "))
+				println("    " + constraint.replaceAll(System.lineSeparator, System.lineSeparator + "    "))
+				println("  " + invariant.replaceAll(System.lineSeparator, System.lineSeparator + "  "))
 				println()
 			}
 			

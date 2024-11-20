@@ -108,6 +108,7 @@ class ScannerLogger implements Runnable {
 	
 	def void cancel() {
 		this.isCancelled = true
+		this.scanner?.close
 		if (thread !== null) {
 			thread.interrupt
 		}
