@@ -121,8 +121,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 								existsPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula»)))'''
 				case UNTIL:
 					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let _r = «recordId» in «
-							existsRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «
-								rhsOperand.serializeFormula» && («
+							existsRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula» && («
 									forallRealPrefixName» _r (get_e_prefix_leading_to _r «formula.inputId» «recordId») (fun «recordId» -> «lhsOperand.serializeFormula»))))'''
 				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
@@ -137,6 +136,10 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
 							formula.inputId» in («lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»)) && («
 								forallRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula»)))'''
+				case RELEASE:
+					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let _r = «recordId» in «
+							forallRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula» || («
+									existsPrefixName» _r (get_e_prefix_leading_to _r «formula.inputId» «recordId») (fun «recordId» -> «lhsOperand.serializeFormula» && «rhsOperand.serializeFormula»))))'''
 				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
 		}
