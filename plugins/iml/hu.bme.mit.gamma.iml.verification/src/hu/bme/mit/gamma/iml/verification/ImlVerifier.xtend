@@ -239,7 +239,7 @@ class ImlVerifier extends AbstractVerifier {
 				let path_«count++» = [] in
 				«FOR inputsOfLevel : query.parseInputsOfLevels.values»
 					let path_«count++» = path_«count - 2» @ select_longest [«
-						FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_NEXT_") /* TODO based on ImlPropertySerializer.getInputId */»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
+						FOR inputOfLevel : inputsOfLevel SEPARATOR ';'»«IF inputOfLevel.contains("_X_") /* TODO based on ImlPropertySerializer.getInputId */»[«inputOfLevel»]«ELSE»«inputOfLevel»«ENDIF»«ENDFOR»] in
 				«ENDFOR»
 				path_«count - 1»;;
 		''')
