@@ -45,7 +45,7 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 		
 		return formula.ltl &&
 			(formula.isAQuantified) ?
-				binaryOperators.forall[ #[BinaryPathOperator.RELEASE, BinaryPathOperator.WEAK_UNTIL].contains(it) ] : // A
+				binaryOperators.forall[ #[BinaryPathOperator.UNTIL, BinaryPathOperator.RELEASE, BinaryPathOperator.WEAK_UNTIL].contains(it) ] : // A
 				binaryOperators.forall[ #[BinaryPathOperator.UNTIL, BinaryPathOperator.STRONG_RELEASE].contains(it) ] // E
 	}
 	
@@ -119,11 +119,11 @@ class ImlPropertySerializer extends ThetaPropertySerializer {
 					'''((let «recordId» = «Namings.RUN_FUNCTION_IDENTIFIER» «recordId» «
 							formula.inputId» in «lhsOperand.serializeFormula») || («
 								existsPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «rhsOperand.serializeFormula»)))'''
-//				case UNTIL:
-//					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let rs = «recordId» in «
-//							existsRealPrefixName» «recordId» «formula.inputId» fun(«recordId» -> «
-//								rhsOperand.serializeFormula» && «
-//									forallRealPrefixName» rs «formula.inputId - does not capture the correct prefix» (fun «recordId» -> «lhsOperand.serializeFormula»)))'''
+				case UNTIL:
+					'''((«endsInRealLoopName» «recordId» «formula.inputId») ==> let _r = «recordId» in «
+							existsRealPrefixName» «recordId» «formula.inputId» (fun «recordId» -> «
+								rhsOperand.serializeFormula» && («
+									forallRealPrefixName» _r (get_e_prefix_leading_to _r «formula.inputId» «recordId») (fun «recordId» -> «lhsOperand.serializeFormula»))))'''
 				default: throw new IllegalArgumentException("Not supported operator: " + operator)
 			}
 		}

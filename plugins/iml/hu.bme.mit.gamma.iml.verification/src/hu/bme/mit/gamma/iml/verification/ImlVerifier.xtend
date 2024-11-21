@@ -220,17 +220,30 @@ class ImlVerifier extends AbstractVerifier {
 //					exists_real_prefix r e (fun r -> r = end_state);;
 //			''')
 		}
-		
+		if (query.contains("get_e_prefix_leading_to ")) {
+			builder.append('''
+				let rec get_e_prefix_leading_to r e r_=
+					match e with
+					| [] -> [] (* Should be unreachable *)
+					| hd :: tl ->
+						let r = run_cycle r hd in
+						if r = r_ then
+							[hd]
+						else
+							hd :: get_e_prefix_leading_to r tl r_
+				[@@adm e];;
+			''')
+		}
 		builder.append('''
 			let rec select_longest list_of_lists =
 				match list_of_lists with
-					| [] -> []
-					| hd::tl ->
-						let so_far_longest = select_longest tl in
-						if List.length hd >= List.length so_far_longest then
-							hd
-						else
-							so_far_longest;;
+				| [] -> []
+				| hd::tl ->
+					let so_far_longest = select_longest tl in
+					if List.length hd >= List.length so_far_longest then
+						hd
+					else
+						so_far_longest;;
 		''')
 		
 		var count = 0
