@@ -25,6 +25,7 @@ class ImlVerifier extends AbstractVerifier {
 	public static final String IMANDRA_TEMPORARY_COMMAND_FOLDER = ".imandra"
 	//
 	protected final static extension FileUtil fileUtil = FileUtil.INSTANCE
+	protected final ImlPythonApiHelper pythonApiHelper = ImlPythonApiHelper.INSTANCE
 	//
 	
 	override verifyQuery(Object traceability, String parameters, File modelFile, File queryFile) {
@@ -110,6 +111,8 @@ class ImlVerifier extends AbstractVerifier {
 			resultReader?.close
 			errorReader?.cancel
 			cancel
+			
+			pythonApiHelper?.killImandraInstances
 		}
 		
 		return traceResult
