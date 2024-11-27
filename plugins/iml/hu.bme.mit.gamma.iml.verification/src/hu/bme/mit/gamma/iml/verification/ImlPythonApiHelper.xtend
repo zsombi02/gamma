@@ -56,6 +56,7 @@ class ImlPythonApiHelper {
 				}
 			} catch (Exception e) {
 			} finally {
+				resultReader?.close
 				process?.destroy
 			}
 		}
