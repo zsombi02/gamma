@@ -247,7 +247,9 @@ class ActionTransformer {
 		
 		val assumption = action.constraint
 		// Precondition (function inlining)
-		result += assumption.transformPrecondition
+		if (assumption !== null) {
+			result += assumption.transformPrecondition
+		}
 		// Transform assumption and create actions
 		val lowlevelAssumptions = (assumption === null) ? #[ createTrueExpression ] : assumption.transformExpression
 		val lowlevelAssumption = (lowlevelAssumptions.size == 1) ? lowlevelAssumptions.head : lowlevelAssumptions.wrapIntoAndExpression
