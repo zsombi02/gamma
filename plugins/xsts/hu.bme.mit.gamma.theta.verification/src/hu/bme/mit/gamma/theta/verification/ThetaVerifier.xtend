@@ -144,7 +144,8 @@ class ThetaVerifier extends AbstractVerifier {
 	}
 	
 	override getTemporaryQueryFilename(File modelFile) {
-		return "." + modelFile.extensionlessName + ".prop"
+		return THETA_TEMPORARY_CEX_FOLDER + File.separator + // temporary folder
+				modelFile.extensionlessName.toHiddenFileName + "-" + Thread.currentThread.name + ".prop" // Needed for thread racing
 	}
 	
 	def getTraceFile(File modelFile) {
