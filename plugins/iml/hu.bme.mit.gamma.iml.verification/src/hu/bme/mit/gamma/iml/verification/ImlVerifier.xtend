@@ -149,7 +149,8 @@ class ImlVerifier extends AbstractVerifier {
 				[@@adm e];; (* Needed by Imandra to prove termination *)
 			''')
 		}
-		if (query.contains("exists_real_prefix ") || query.contains("ends_in_real_loop ")) {
+		if (query.contains("exists_real_prefix ") || query.contains("ends_in_real_loop ") ||
+				query.contains("ends_in_loop ")) {
 			builder.append('''
 				let rec exists_real_prefix r e p =
 					match e with
@@ -216,12 +217,23 @@ class ImlVerifier extends AbstractVerifier {
 							let final_state = run_cycle before_final_state tl in
 							before_final_state <> final_state &&
 								exists_real_prefix r e (fun r -> r = final_state);;
-			''') // We do not allow a loop between the last two states
+			''') // We do not the last state and before last state to be equal
 //			builder.append('''
 //				let ends_in_real_loop r e =
 //					let end_state = run r e in
 //					exists_real_prefix r e (fun r -> r = end_state);;
 //			''')
+		}
+		if (query.contains("ends_in_loop ")) {
+			builder.append('''
+				let ends_in_loop r e =
+					match e with
+					| [] -> false
+					| [hd] -> false
+					| _ ->
+						let final_state = run r e in
+						exists_real_prefix r e (fun r -> r = final_state);;
+			''')
 		}
 		if (query.contains("get_e_prefix_leading_to ")) {
 			builder.append('''
