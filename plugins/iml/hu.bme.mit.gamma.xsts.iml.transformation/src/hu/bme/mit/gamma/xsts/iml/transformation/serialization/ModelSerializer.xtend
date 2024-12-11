@@ -58,8 +58,12 @@ class ModelSerializer {
 						.map[it.variableDeclaration]]
 						.flatten
 		
-		val envHavocs = inEventAction // Only this action is considered; thus, havocs in other actions are not (yet) supported
+		val envHavocs = inEventAction
 						.getSelfAndAllContentsOfType(HavocAction)
+		val transHavocs = xSts.mergedAction
+						.getSelfAndAllContentsOfType(HavocAction) // Optimization: could be a set if there are no havocs in the same blocks
+		val havocs = envHavocs + transHavocs
+		actionSerializer.setHasTransHavoc = !transHavocs.empty
 						
 		val choices = xSts.getAllContentsOfType(NonDeterministicAction)
 		
@@ -102,9 +106,9 @@ class ModelSerializer {
 				}
 				
 			«ENDIF»
-			«IF !envHavocs.empty»
+			«IF !havocs.empty»
 				type nonrec «ENV_HAVOC_RECORD_TYPE_NAME» = {
-					«FOR envHavoc : envHavocs»
+					«FOR envHavoc : havocs»
 						«envHavoc.serializeEnvFieldDeclaration»
 					«ENDFOR»
 					«FOR choice : choices»
@@ -123,7 +127,7 @@ class ModelSerializer {
 		
 		actionSerializer.hoistBranches = true // Hoisting 'trans'
 		val trans = '''
-			let trans («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») =
+			let trans («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») «IF actionSerializer.getHasTransHavoc»(«ENV_HAVOC_RECORD_IDENTIFIER» : «ENV_HAVOC_RECORD_TYPE_NAME») «ENDIF»=
 				«localVariables.initVariablesIfNotEmpty(LOCAL_RECORD_IDENTIFIER)»
 				«xSts.mergedAction.serializeActionGlobally»
 		'''
@@ -142,7 +146,7 @@ class ModelSerializer {
 					«globalVariableDeclaration»{ «globalVariableName» with «FOR choice : choices»«choice.customizeChoice» = «ENV_HAVOC_RECORD_IDENTIFIER».«choice.customizeChoice»; «ENDFOR»} in
 				«ENDIF»
 				«globalVariableDeclaration»env «globalVariableName» «ENV_HAVOC_RECORD_IDENTIFIER» in
-				«globalVariableDeclaration»trans «globalVariableName» in
+				«globalVariableDeclaration»trans «globalVariableName» «IF actionSerializer.getHasTransHavoc»«ENV_HAVOC_RECORD_IDENTIFIER» «ENDIF»in
 				«IF !choices.empty»
 					«globalVariableDeclaration»{ «globalVariableName» with «FOR choice : choices»«choice.customizeChoice» = 0; «ENDFOR»} (* Optimization *) in
 				«ENDIF»
