@@ -402,8 +402,13 @@ class TraceBuilder {
 					return Integer.parseInt(value) // Integer
 				} catch (NumberFormatException e) {
 					if (type instanceof EnumerationTypeDefinition) { // Enum
+						val typeDeclaration = type.typeDeclaration
+						val typeDeclarationName = typeDeclaration?.name
 						val literals = type.literals
-						val literal = literals.findFirst[it.name.equals(value)]
+						val literal = literals.findFirst[
+							it.name == value || // "literal"
+							(typeDeclarationName + "." + it.name) == value // "TypeName.literal"
+						]
 						return literals.indexOf(literal)
 					}
 					try {
