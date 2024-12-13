@@ -106,7 +106,7 @@ public class OcraUtil {
             while (resultReader.hasNextLine()) {
                 String line = resultReader.nextLine();
                 if (line.matches(successRegex)) {
-                	logger.info("Ocra: " + line);
+                	System.out.println("Ocra: " + line);
                     return;
                 }
             }
@@ -116,7 +116,7 @@ public class OcraUtil {
             while (errorReaderScanner.hasNextLine()) {
                 String line = errorReaderScanner.nextLine();
                 if (line.matches(failureRegex)) {
-                	logger.info("Ocra: " + line);
+                	System.out.println("Ocra: " + line);
                 }
             }
             
@@ -172,7 +172,7 @@ public class OcraUtil {
 	
 	            Files.write(nonTempFilePath, nonTempContent);
         	} catch (NoSuchFileException e) {
-        		logger.warning("No Temp file found on path: " + tempFilePath.toString());
+        		System.out.println("No Temp file found on path: " + tempFilePath.toString());
     		}
         } catch (IOException e) {
             e.printStackTrace();
@@ -187,12 +187,12 @@ public class OcraUtil {
 		        for (File file : files) {
 		            if (file.isFile() && file.getName().contains("_TEMP")) {
 		                file.delete();
-		                logger.info("Deleted temp file: " + file.getName());
+		                System.out.println("Deleted temp file: " + file.getName());
 		            }
 		        }
 		    }
 		} else {
-			logger.warning("Folder does not exist or is not a directory: " + folderPath);
+			System.out.println("Folder does not exist or is not a directory: " + folderPath);
 		}
     }
     

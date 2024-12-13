@@ -802,6 +802,9 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 			ComponentReference componentReference = (ComponentReference) transformation.getModel();
 			List<Expression> arguments = componentReference.getArguments();
 			Component component = componentReference.getComponent();
+			Entry<Integer, Integer> schedulingConstraint = evaluateConstraint(transformation.getConstraint());
+			Integer minSchedulingConstraint = (schedulingConstraint != null) ? schedulingConstraint.getKey() : null;
+			Integer maxSchedulingConstraint = (schedulingConstraint != null) ? schedulingConstraint.getValue() : null;
 			
 			String fileName = transformation.getFileName().get(0);
 			targetFolderUri = targetFolderUri + File.separator + "ocra";
@@ -810,7 +813,7 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 			
 			
 			Gamma2OcraTransformerSerializer gamma2OcraTransformer =
-					new Gamma2OcraTransformerSerializer(component, arguments, targetFolderUri, fileName);
+					new Gamma2OcraTransformerSerializer(component, arguments, targetFolderUri, fileName, minSchedulingConstraint, maxSchedulingConstraint);
 			gamma2OcraTransformer.execute();
 		}
 

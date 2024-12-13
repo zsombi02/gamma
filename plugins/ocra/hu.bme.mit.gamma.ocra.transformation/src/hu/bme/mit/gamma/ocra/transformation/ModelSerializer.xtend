@@ -28,7 +28,6 @@ import static extension hu.bme.mit.gamma.expression.derivedfeatures.ExpressionMo
 import static extension hu.bme.mit.gamma.ocra.transformation.NamingSerializer.*
 import static extension hu.bme.mit.gamma.statechart.derivedfeatures.StatechartModelDerivedFeatures.*
 
-//TODO többszintű modell esetén nem megfleleő a nevezés, nem fűzi össze megfelelően
 
 class ModelSerializer {
 	// Singleton
