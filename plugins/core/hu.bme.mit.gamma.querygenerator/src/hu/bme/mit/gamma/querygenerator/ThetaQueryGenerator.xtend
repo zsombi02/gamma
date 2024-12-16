@@ -216,8 +216,8 @@ class ThetaQueryGenerator extends AbstractQueryGenerator {
 	def getSourceState(String targetStateName) {
 		for (match : instanceStates) {
 			val name = getSingleTargetStateName(match.state, match.parentRegion, match.instance)
-			if (name.equals(targetStateName)) {
-				return new Pair(match.state, match.instance)
+			if (name == targetStateName) {
+				return match.state -> match.instance
 			}
 		}
 		throw new IllegalArgumentException("Not known id")

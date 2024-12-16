@@ -124,6 +124,8 @@ class ImlVerifier extends AbstractVerifier {
 			«modelString»;;
 			«commandlessQuery.utilityMethods»
 			«command»«IF !arguments.nullOrEmpty» «arguments» «ENDIF»(«commandlessQuery»)«postArguments»;;
+			#print_length 10000;;
+			#print_depth 10000;;
 			init;;
 			let path = collect_path «FOR inputsOfLevels : commandlessQuery
 				.parseInputsOfLevels

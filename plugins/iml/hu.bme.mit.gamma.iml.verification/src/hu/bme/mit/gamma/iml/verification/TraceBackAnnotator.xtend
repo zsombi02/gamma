@@ -130,6 +130,7 @@ class TraceBackAnnotator {
 							state = BackAnnotatorState.END
 						}
 						case line.contains(COUNTEREXAMPLE_TRACE_VAR): {
+							isValidTrace = true
 							state = BackAnnotatorState.STATE_CHECK // Will be switched to ENV in default branch
 						}
 						case line.startsWith(RETURN_VALUE): {
@@ -149,7 +150,7 @@ class TraceBackAnnotator {
 							stepContainer = cycle
 						}
 						default: {
-							// Due to inlined '{'
+							// EXTRACTABLE: Checks ENV/STATE here due to inlined '{'
 							if (line.startsWith(STATE_CHANGE2) || line.startsWith(STATE_CHANGE)) {
 								if (state == BackAnnotatorState.ENVIRONMENT_CHECK) { // Environment -> State
 									state = BackAnnotatorState.STATE_CHECK
@@ -185,7 +186,7 @@ class TraceBackAnnotator {
 								val value = split.get(1).trim
 								try {
 									switch (state) {
-										case STATE_CHECK : {
+										case STATE_CHECK: {
 											val potentialStateString = '''«id» == «value»'''
 											if (imlQueryGenerator.isSourceState(potentialStateString)) {
 												potentialStateString.parseState(step)
@@ -280,6 +281,8 @@ class TraceBackAnnotator {
 			else {
 				step.addSchedulingIfNeeded
 			}
+		} catch (Exception e) {
+			throw e
 		}
 		
 		trace.removeInternalEventRaiseActs
