@@ -145,7 +145,7 @@ class ScenarioStatechartTraceGenerator {
 				}
 				if (!added) {
 					similarTracesSet += <ExecutionTrace>newArrayList
-					similarTracesSet.last += trace
+					similarTracesSet.lastOrNull += trace
 				}
 			}
 			
@@ -170,7 +170,7 @@ class ScenarioStatechartTraceGenerator {
 		var i = 0
 		val containingPackage = component.containingPackage
 		for (trace : derivedTraces) {
-			val lastStep = trace.steps.last
+			val lastStep = trace.steps.lastOrNull
 			val stateAssert = lastStep.asserts.filter(ComponentInstanceStateReferenceExpression).head // this filter is sufficient due to the simple assertions used in the tests
 			if(stateAssert !== null && stateAssert.state.name.contains(targetStateName)) {
 				trace.setupExecutionTrace(null, trace.name + i++, component, containingPackage, statechart.scenarioAllowedWaitAnnotation.clone)

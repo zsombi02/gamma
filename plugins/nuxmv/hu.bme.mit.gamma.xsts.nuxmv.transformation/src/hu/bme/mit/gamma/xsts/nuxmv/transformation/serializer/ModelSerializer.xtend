@@ -212,7 +212,7 @@ class ModelSerializer {
 			val array = lhs.declaration as PrimedVariable
 			val oldArray = array.primedVariable
 			val indexes = lhs.indexes
-			val lastIndex = indexes.last
+			val lastIndex = indexes.lastOrNull
 			
 			val arrayWriteExpression = new StringBuilder
 			arrayWriteExpression.append(oldArray.name)
@@ -461,7 +461,7 @@ class ModelSerializer {
 				if (trimmedLine.startsWith("DEFINE")) {
 					val split = trimmedLine.split(" := ")
 					val id = split.head.substring("DEFINE ".length)
-					val valueAndSemicolon = split.last
+					val valueAndSemicolon = split.lastOrNull
 					val value = valueAndSemicolon.substring(0, valueAndSemicolon.length - 1)
 					if (value.contains("WRITE")) {
 						// Save

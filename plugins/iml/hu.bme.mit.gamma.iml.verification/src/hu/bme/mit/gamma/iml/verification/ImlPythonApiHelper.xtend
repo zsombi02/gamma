@@ -36,7 +36,7 @@ class ImlPythonApiHelper {
 			while (resultReader.hasNextLine) {
 				val line = resultReader.nextLine
 				val split = line.split(" ")
-				val instanceId = split.last
+				val instanceId = split.lastOrNull
 				logger.info("Found: " + instanceId)
 				instanceIds += instanceId
 			}

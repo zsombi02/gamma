@@ -39,7 +39,7 @@ class ImlQueryGenerator extends ThetaQueryGenerator {
 		val superName = super.getSingleTargetStateName(state, parentRegion, instance)
 		val split = superName.split(" == ")
 		val variable = split.head
-		val literal = split.last
+		val literal = split.lastOrNull
 		
 		return '''«variable.customizeDeclarationName» == «Namings.customizeRegionTypeName(parentRegion).customizeTypeDeclarationName».«literal.customizeEnumLiteralName»'''
 	} 

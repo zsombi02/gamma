@@ -259,7 +259,7 @@ class ActionTransformer {
 			result += lowlevelHavoc
 			
 			lowlevelHavoc.lhs = lhs
-			if (lhs === lowlevelLhs.last) { // One constraint is enough at the end
+			if (lhs === lowlevelLhs.lastOrNull) { // One constraint is enough at the end
 				lowlevelHavoc.constraint = lowlevelAssumption
 			}
 		}

@@ -418,8 +418,8 @@ class TraceBuilder {
 							val split = value.split("/")
 							val typeAndNumerator = split.head
 							val typeAndNumeratorSplit = typeAndNumerator.split("'")
-							val numerator = typeAndNumeratorSplit.last
-							val denominator = split.last
+							val numerator = typeAndNumeratorSplit.lastOrNull
+							val denominator = split.lastOrNull
 							
 							val doubleValue = Double.parseDouble(numerator) / Double.parseDouble(denominator)
 							return doubleValue
