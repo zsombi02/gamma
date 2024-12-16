@@ -158,6 +158,25 @@ class ModelSerializer {
 					| hd :: tl ->
 						«globalVariableDeclaration»«SINGLE_RUN_FUNCTION_IDENTIFIER» «globalVariableName» hd in
 						«RUN_FUNCTION_IDENTIFIER» «globalVariableName» tl
+			
+			let log_«SINGLE_RUN_FUNCTION_IDENTIFIER» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («ENV_HAVOC_RECORD_IDENTIFIER» : «ENV_HAVOC_RECORD_TYPE_NAME») =
+							«IF !choices.empty»
+								«globalVariableDeclaration»{ «globalVariableName» with «FOR choice : choices»«choice.customizeChoice» = «ENV_HAVOC_RECORD_IDENTIFIER».«choice.customizeChoice»; «ENDFOR»} in
+							«ENDIF»
+							«globalVariableDeclaration»env «globalVariableName» «ENV_HAVOC_RECORD_IDENTIFIER» in
+							let pre_trans_r = «globalVariableName» in
+							«globalVariableDeclaration»trans «globalVariableName» «IF actionSerializer.getHasTransHavoc»«ENV_HAVOC_RECORD_IDENTIFIER» «ENDIF»in
+							«IF !choices.empty»
+								«globalVariableDeclaration»{ «globalVariableName» with «FOR choice : choices»«choice.customizeChoice» = 0; «ENDFOR»} (* Optimization *) in
+							«ENDIF»
+							pre_trans_r, «globalVariableName»
+			
+			let rec log_«RUN_FUNCTION_IDENTIFIER» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («ENV_HAVOC_RECORD_IDENTIFIER» : «ENV_HAVOC_RECORD_TYPE_NAME» list) =
+				match «ENV_HAVOC_RECORD_IDENTIFIER» with
+					| [] -> []
+					| hd :: tl ->
+						let pre_trans_r, «globalVariableName» = log_«SINGLE_RUN_FUNCTION_IDENTIFIER» «globalVariableName» hd in
+						pre_trans_r :: «globalVariableName» :: (log_«RUN_FUNCTION_IDENTIFIER» «globalVariableName» tl)
 		'''
 		
 		return '''

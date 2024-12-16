@@ -35,12 +35,14 @@ import static extension hu.bme.mit.gamma.statechart.derivedfeatures.StatechartMo
 
 class TraceBackAnnotator {
 	//
-	protected final String INFO_END = "is now traced"
-	protected final String ENVIRONMENT = " <--"
-	protected final String STATE = " -->"
+	protected final String INFO_END = "module CX :"
+	protected final String STATE_CHANGE = "{"
+	protected final String STATE_CHANGE2 = "[{"
 	protected final String LOOP = " loop "
 	protected final String RETURN_VALUE = "- : "
-	protected final String COUNTEREXAMPLE_VAR = RETURN_VALUE + "t =" // Used to be 'module CX :' before refactor
+	protected final String COUNTEREXAMPLE_INIT_VAR = RETURN_VALUE + "t =" // Used to be 'module CX :' before refactor
+	protected final String COUNTEREXAMPLE_TRACE_VAR = RETURN_VALUE + "t list ="
+	
 	//
 	protected final Scanner traceScanner
 	//
@@ -123,9 +125,12 @@ class TraceBackAnnotator {
 				
 				if (state != BackAnnotatorState.INFO && state != BackAnnotatorState.END) {
 					switch (line) {
-						case line.contains(COUNTEREXAMPLE_VAR): { // Before RETURN_VALUE
+						case line.contains(COUNTEREXAMPLE_INIT_VAR): { // Before RETURN_VALUE
 							isValidTrace = true
 							state = BackAnnotatorState.END
+						}
+						case line.contains(COUNTEREXAMPLE_TRACE_VAR): {
+							state = BackAnnotatorState.STATE_CHECK // Will be switched to ENV in default branch
 						}
 						case line.startsWith(RETURN_VALUE): {
 							// Return value of a call, no operation
@@ -136,30 +141,7 @@ class TraceBackAnnotator {
 							
 							traceScanner.nextLine // Removing '- : t =' corresponding to 'init' from the trace
 							
-							state = BackAnnotatorState.STATE_CHECK
-						}
-						case line.contains(ENVIRONMENT): {
-							/// New step to be parsed: checking the previous step
-							step.checkInEvents
-							// Add schedule
-							if (!step.containsType(Reset)) {
-								step.addSchedulingIfNeeded
-							}
-							step.checkStates
-							///
-							
-							// Creating a new step
-							step = stepContainer.addStep
-							
-							/// Add static delay every turn (apart from first state)
-							if (schedulingConstraint !== null) {
-								step.addTimeElapse(schedulingConstraint)
-							} // Or actual time delay (later)
-							
-							state = BackAnnotatorState.ENVIRONMENT_CHECK
-						}
-						case line.contains(STATE): {
-							state = BackAnnotatorState.STATE_CHECK
+							state = BackAnnotatorState.ENVIRONMENT_CHECK // Will be switched to STATE in default branch
 						}
 						case line.startsWith(LOOP): { // (Potentially later)
 							val cycle = createCycle
@@ -167,6 +149,33 @@ class TraceBackAnnotator {
 							stepContainer = cycle
 						}
 						default: {
+							// Due to inlined '{'
+							if (line.startsWith(STATE_CHANGE2) || line.startsWith(STATE_CHANGE)) {
+								if (state == BackAnnotatorState.ENVIRONMENT_CHECK) { // Environment -> State
+									state = BackAnnotatorState.STATE_CHECK
+								}
+								else { // Init -> Environment or State -> Environment
+									/// New step to be parsed: checking the previous step
+									step.checkInEvents
+									// Add schedule
+									if (!step.containsType(Reset)) {
+										step.addSchedulingIfNeeded
+									}
+									step.checkStates
+									///
+									
+									// Creating a new step
+									step = stepContainer.addStep
+									
+									/// Add static delay every turn (apart from first state)
+									if (schedulingConstraint !== null) {
+										step.addTimeElapse(schedulingConstraint)
+									} // Or actual time delay (later)
+									
+									state = BackAnnotatorState.ENVIRONMENT_CHECK
+								}
+							}
+							//
 							// Parsing variables
 							val handledLines = line.handleImandraLines(traceScanner)
 							// There can be multiple lines with variable valuations in the trace
@@ -241,6 +250,9 @@ class TraceBackAnnotator {
 									// So out of indexing will result in the default value
 									checkState(id.isArray(value))
 								}
+								catch (Exception e) {
+									throw e
+								}
 							}
 						
 						}
@@ -286,7 +298,7 @@ class TraceBackAnnotator {
 	protected def handleInfoLines(String line, BackAnnotatorState state) {
 		var newState = state
 		if (state == BackAnnotatorState.INFO) {
-			if (line.contains(INFO_END)) {
+			if (line.startsWith(INFO_END)) {
 				// We have reached the section of interest
 				newState = BackAnnotatorState.INIT
 			}
@@ -298,16 +310,22 @@ class TraceBackAnnotator {
 	// Can be deleted if everything comes in a separate line in the final Imandra implementation
 	protected def handleImandraLines(String line, Scanner scanner) {
 		var newLine = line
+		if (newLine.startsWith("[")) {
+			newLine = line.substring(1)
+		}
 		// Imandra returns the values of the fields between '{' and '}' and can have line breaks after the '='
 		if (newLine.startsWith("{")) {
 			newLine = line.substring(1)
 		}
-		while (!(newLine.endsWith(";") || newLine.endsWith("}"))) {
+		while (!(newLine.endsWith(";") || newLine.endsWith("}") || newLine.endsWith("}]"))) {
 			val nextLine = scanner.nextLine
 			newLine = newLine + " " + nextLine
 		}
 		if (newLine.endsWith("}")) {
 			newLine = newLine.substring(0, newLine.length - 1)
+		}
+		if (newLine.endsWith("};") || newLine.endsWith("}]")) {
+			newLine = newLine.substring(0, newLine.length - 2)
 		}
 		newLine = newLine.replaceAll(";", System.lineSeparator)
 		
