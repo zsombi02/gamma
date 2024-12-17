@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Automatic-Module-Name: hu.bme.mit.gamma.fei.model
-Bundle-Name: %pluginName
+Bundle-Name: Fault Extension Instructions Metamodel
 Bundle-SymbolicName: hu.bme.mit.gamma.fei.model;singleton:=true
-Bundle-Vendor: %providerName
+Bundle-Vendor: BME-FTSRG
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: hu.bme.mit.gamma.fei.model,
