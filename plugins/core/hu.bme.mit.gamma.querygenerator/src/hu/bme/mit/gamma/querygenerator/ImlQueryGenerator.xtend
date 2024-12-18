@@ -21,9 +21,9 @@ import hu.bme.mit.gamma.statechart.interface_.Event
 import hu.bme.mit.gamma.statechart.interface_.Port
 import hu.bme.mit.gamma.statechart.statechart.Region
 import hu.bme.mit.gamma.statechart.statechart.State
+import hu.bme.mit.gamma.xsts.transformation.util.Namings
 
 import static extension hu.bme.mit.gamma.xsts.iml.transformation.util.Namings.*
-import hu.bme.mit.gamma.xsts.transformation.util.Namings
 
 class ImlQueryGenerator extends ThetaQueryGenerator {
 	//
@@ -39,9 +39,8 @@ class ImlQueryGenerator extends ThetaQueryGenerator {
 		val superName = super.getSingleTargetStateName(state, parentRegion, instance)
 		val split = superName.split(" == ")
 		val variable = split.head
-		val literal = split.last
 		
-		return '''«variable.customizeDeclarationName» == «Namings.customizeRegionTypeName(parentRegion).customizeTypeDeclarationName».«literal.customizeEnumLiteralName»'''
+		return '''«variable.customizeDeclarationName» == «Namings.customizeRegionTypeName(parentRegion).customizeTypeDeclarationName».«Namings.customizeName(state).customizeEnumLiteralName»'''
 	} 
 	
 	override protected getTargetVariableNames(VariableDeclaration variable, SynchronousComponentInstance instance) {

@@ -146,7 +146,7 @@ class JavaUtil {
 		return castedMap
 	}
 	
-	def <K, V> Collection<Entry<V, K>> invert(Collection<? extends Entry<K, V>> entrySet) {
+	def <K, V> Collection<Entry<V, K>> invert(Iterable<? extends Entry<K, V>> entrySet) {
 		val entries = <Entry<V, K>>newArrayList
 		for (entry : entrySet) {
 			entries += new SimpleEntry(entry.value, entry.key)
@@ -170,6 +170,21 @@ class JavaUtil {
 				}
 			}
 		}
+	}
+	
+	def <T> List<Entry<T, T>> getPairs(Iterable<T> collection) {
+		val pairs = <Entry<T, T>>newArrayList
+		
+		for (element : collection) {
+			for (elem : collection) {
+				if (element !== elem &&
+						!pairs.contains(Map.entry(elem, element))) { // To avoid a-b and b-a pairs
+					pairs += Map.entry(element, elem)
+				}
+			}
+		}
+		
+		return pairs
 	}
 	
 	//

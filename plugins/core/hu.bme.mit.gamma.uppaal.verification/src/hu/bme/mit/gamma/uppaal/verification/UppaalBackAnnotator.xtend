@@ -202,7 +202,7 @@ class UppaalBackAnnotator extends AbstractUppaalBackAnnotator {
 		for (locationName : locationNames) {
 			val fullName = locationName.split("\\.")
 			val templateName = fullName.head.substring(2) // Removing P_ from the template name: ControlTemplate
-			val shortLocationName = fullName.last // Getting InitLoc
+			val shortLocationName = fullName.lastOrNull // Getting InitLoc
 			val location = Locations.Matcher.on(engine).getAllValuesOflocation(null, templateName, shortLocationName)
 			if (location.size != 1) {
 				throw new IllegalArgumentException("No location retrieved: " + locationName)
@@ -240,7 +240,7 @@ class UppaalBackAnnotator extends AbstractUppaalBackAnnotator {
 				if (variableDeclarations.size != 1) {
 					throw new IllegalArgumentException("Not one variable retrieved for " + variableValue + ": " + variableDeclarations.map[it.variable.head])
 				}
-				val value = splittedName.last
+				val value = splittedName.lastOrNull
 				val variable = variableDeclarations.head.variable.head
 				variableList.add(new SimpleEntry<Variable, Integer>(variable, Integer.parseInt(value)))			
 			}		
@@ -516,7 +516,7 @@ class UppaalBackAnnotator extends AbstractUppaalBackAnnotator {
 		if (eventRaise.contains(" := ")) {
 			// Synchronous components
 			val eventRaiseSplit = eventRaise.split(" := ")
-			return #{"name" -> eventRaiseSplit.head , "value" -> eventRaiseSplit.last}
+			return #{"name" -> eventRaiseSplit.head , "value" -> eventRaiseSplit.lastOrNull}
 		}
 		// Wrapper components: pushcrossroadsMessages(testPort_testIn, 5)
 		val matcher = Pattern.compile("(?<push>push.*)\\((?<event>\\w+), (?<value>\\d+)\\).*").matcher(eventRaise)

@@ -25,6 +25,7 @@ import hu.bme.mit.gamma.expression.model.InequalityExpression
 import hu.bme.mit.gamma.expression.model.NotExpression
 import hu.bme.mit.gamma.expression.model.TrueExpression
 import hu.bme.mit.gamma.expression.model.TypeDeclaration
+import hu.bme.mit.gamma.expression.model.XorExpression
 import hu.bme.mit.gamma.expression.util.ExpressionEvaluator
 import hu.bme.mit.gamma.expression.util.ExpressionTypeDeterminator2
 
@@ -49,6 +50,8 @@ class ImlPropertyExpressionSerializer extends ThetaPropertyExpressionSerializer 
 	override String _serialize(NotExpression expression) '''(not («expression.operand.serialize»))'''
 	
 	override String _serialize(ImplyExpression expression) '''(«expression.leftOperand.serialize» ==> «expression.rightOperand.serialize»)'''
+	
+	override String _serialize(XorExpression expression) '''(«FOR operand : expression.operands SEPARATOR " <> "»«operand.serialize»«ENDFOR»)'''
 	
 	override String _serialize(EqualityExpression expression) '''(«expression.leftOperand.serialize» = «expression.rightOperand.serialize»)'''
 	
@@ -116,7 +119,7 @@ class ImlPropertyExpressionSerializer extends ThetaPropertyExpressionSerializer 
 	//
 	
 	def getId(Declaration declaration) {
-		return GLOBAL_RECORD_IDENTIFIER
+		return ImlReferenceSerializer.recordIdentifier
 	}
 	
 }

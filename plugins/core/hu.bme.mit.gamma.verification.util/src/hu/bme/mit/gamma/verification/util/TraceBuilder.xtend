@@ -402,13 +402,29 @@ class TraceBuilder {
 					return Integer.parseInt(value) // Integer
 				} catch (NumberFormatException e) {
 					if (type instanceof EnumerationTypeDefinition) { // Enum
+						val typeDeclaration = type.typeDeclaration
+						val typeDeclarationName = typeDeclaration?.name
 						val literals = type.literals
-						val literal = literals.findFirst[it.name.equals(value)]
+						val literal = literals.findFirst[
+							it.name == value || // "literal"
+							(typeDeclarationName + "." + it.name) == value // "TypeName.literal"
+						]
 						return literals.indexOf(literal)
 					}
 					try {
 						return Double.parseDouble(value) // Decimal
 					} catch (NumberFormatException ee) {
+						if (value.contains("/")) {
+							val split = value.split("/")
+							val typeAndNumerator = split.head
+							val typeAndNumeratorSplit = typeAndNumerator.split("'")
+							val numerator = typeAndNumeratorSplit.lastOrNull
+							val denominator = split.lastOrNull
+							
+							val doubleValue = Double.parseDouble(numerator) / Double.parseDouble(denominator)
+							return doubleValue
+						}
+
 						throw new IllegalArgumentException("Not known value: " + value)
 					}
 				}

@@ -14,8 +14,11 @@ import hu.bme.mit.gamma.transformation.util.GammaFileNamer
 import hu.bme.mit.gamma.util.FileUtil
 import hu.bme.mit.gamma.util.GammaEcoreUtil
 import hu.bme.mit.gamma.xsts.iml.transformation.serialization.ModelSerializer
+import hu.bme.mit.gamma.xsts.model.HavocAction
 import hu.bme.mit.gamma.xsts.model.XSTS
 import java.io.File
+
+import static extension hu.bme.mit.gamma.xsts.derivedfeatures.XstsDerivedFeatures.*
 
 class XstsToImlTransformer {
 	protected final String targetFolderUri
@@ -41,9 +44,19 @@ class XstsToImlTransformer {
 	}
 	
 	def void execute() {
-		val imlFile = new File(targetFolderUri + File.separator + fileName.imlImlFileName)
+		validate
+		val imlFile = new File(targetFolderUri + File.separator + fileName.imlImandraFileName)
 		val imlString = xSts.serializeIml
 		imlFile.saveString(imlString)
+	}
+	
+	//
+	
+	protected def void validate() {
+		val initHavocs = xSts.initializingAction.getSelfAndAllContentsOfType(HavocAction)
+		if (!initHavocs.empty) {
+			throw new IllegalArgumentException("Havoc actions are not supported in the initial transition")
+		}
 	}
 	
 }

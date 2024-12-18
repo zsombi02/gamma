@@ -167,14 +167,25 @@ class UnfoldedExecutionTraceBackAnnotator {
 	// Asserts
 	
 	protected def dispatch Expression transformAssert(ComponentInstanceStateReferenceExpression assert) {
-		val instance = assert.instance.lastInstance as SynchronousComponentInstance
-		val originalInstance = instance.getOriginalSimpleInstanceReference(originalTopComponent)
-		val originalState = originalInstance.getOriginalState(assert.state)
-		return compositeModelFactory.createComponentInstanceStateReferenceExpression => [
-			it.instance = originalInstance
-			it.state = originalState
-			it.region = it.state.parentRegion
-		]
+		try {
+			val instance = assert.instance.lastInstance as SynchronousComponentInstance
+			val originalInstance = instance.getOriginalSimpleInstanceReference(originalTopComponent)
+				val originalState = originalInstance.getOriginalState(assert.state)
+			return compositeModelFactory.createComponentInstanceStateReferenceExpression => [
+				it.instance = originalInstance
+				it.state = originalState
+				it.region = it.state.parentRegion
+			]
+		} catch (IllegalArgumentException e) {
+			val message = e.message.trim
+			if (message.startsWith("Not found state")) {
+				logger.warning(message)
+				val trueExpression = expressionModelFactory.createTrueExpression
+				dummyAsserts += trueExpression
+				return trueExpression
+			}
+			throw e
+		}
 	}
 	
 	protected def dispatch Expression transformAssert(ComponentInstanceVariableReferenceExpression assert) {
@@ -242,7 +253,7 @@ class UnfoldedExecutionTraceBackAnnotator {
 	
 	//
 	
-	protected def transformExpression(Expression value) {
+	protected def Expression transformExpression(Expression value) {
 		val clonedValue = value.clone
 		
 		// Type declarations
@@ -270,6 +281,7 @@ class UnfoldedExecutionTraceBackAnnotator {
 				val field = fieldAssignment.reference.fieldDeclaration
 				val originalField = recordType.fieldDeclarations.findFirst[it.name == field.name] // TODO getOriginalFieldDeclaration
 				fieldAssignment.reference = originalField.createReferenceExpression
+				fieldAssignment.value = fieldAssignment.value.transformExpression
 			}
 		}
 		

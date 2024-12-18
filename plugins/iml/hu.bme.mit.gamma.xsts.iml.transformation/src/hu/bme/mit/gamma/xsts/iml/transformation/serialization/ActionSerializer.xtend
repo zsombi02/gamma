@@ -42,6 +42,7 @@ import static extension hu.bme.mit.gamma.xsts.iml.transformation.util.Namings.*
 class ActionSerializer {
 	//
 	protected boolean hoistBranches = false
+	protected boolean hasTransHavoc = false
 	//
 	protected final extension MessageQueueHandler queueHandler = MessageQueueHandler.INSTANCE
 	protected final extension MessageQueueUtil queueUtil = MessageQueueUtil.INSTANCE
@@ -54,11 +55,12 @@ class ActionSerializer {
 	//
 	
 	new() {
-		this(false)
+		this(false, false)
 	}
 	
-	new(boolean hoistBranches) {
+	new(boolean hoistBranches, boolean hasTransHavoc) {
 		this.hoistBranches = hoistBranches
+		this.hasTransHavoc = hasTransHavoc
 	}
 	
 	//
@@ -84,13 +86,13 @@ class ActionSerializer {
 			val functionBody = (action instanceof IfAction) ?
 					actionCode.deleteFirst(localVariableDeclarations).deleteLast("in") : actionCode + " " + localVariableNames
 			val functionCode = '''
-				let «functionName» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («localVariableName» : «action.localRecordType») =
-					«functionBody»
+				let «functionName» («globalVariableName» : «GLOBAL_RECORD_TYPE_NAME») («
+					localVariableName» : «action.localRecordType») «IF hasTransHavoc»(«ENV_HAVOC_RECORD_IDENTIFIER» : «ENV_HAVOC_RECORD_TYPE_NAME») «ENDIF»= «functionBody»
 			'''
 			actions += action -> functionCode
 			
 			val functionCall = '''
-				«localVariableDeclarations»«functionName» «globalVariableName» «localVariableName» in
+				«localVariableDeclarations»«functionName» «globalVariableName» «localVariableName» «IF hasTransHavoc»«ENV_HAVOC_RECORD_IDENTIFIER» «ENDIF»in
 				«action.localVariableNamesIfLast»
 			'''
 			
@@ -376,6 +378,14 @@ class ActionSerializer {
 	
 	def setHoistBranches(boolean hoistBranches) {
 		this.hoistBranches = hoistBranches
+	}
+	
+	def setHasTransHavoc(boolean hasTransHavoc) {
+		this.hasTransHavoc = hasTransHavoc
+	}
+	
+	def getHasTransHavoc() {
+		return hasTransHavoc
 	}
 	
 	def getHoistedFunctions() {

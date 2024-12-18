@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2018-2023 Contributors to the Gamma project
+ * Copyright (c) 2018-2024 Contributors to the Gamma project
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -66,7 +66,7 @@ class ThetaQueryGenerator extends AbstractQueryGenerator {
 	}
 	
 	def protected getSingleTargetStateName(State state, Region parentRegion, SynchronousComponentInstance instance) {
-		return '''«parentRegion.customizeName(instance)» == «state.customizeName»'''
+		return '''«parentRegion.customizeName(instance)» == «parentRegion.customizeRegionTypeName».«state.customizeName»'''
 	}
 	
 	override protected getTargetVariableNames(VariableDeclaration variable, SynchronousComponentInstance instance) {
@@ -120,7 +120,7 @@ class ThetaQueryGenerator extends AbstractQueryGenerator {
 	}
 	
 	def isDelay(String targetVariableName) {
-		return targetVariableName.equals(Namings.delayVariableName)
+		return targetVariableName == Namings.delayVariableName
 	}
 	
 	// Record
@@ -216,8 +216,8 @@ class ThetaQueryGenerator extends AbstractQueryGenerator {
 	def getSourceState(String targetStateName) {
 		for (match : instanceStates) {
 			val name = getSingleTargetStateName(match.state, match.parentRegion, match.instance)
-			if (name.equals(targetStateName)) {
-				return new Pair(match.state, match.instance)
+			if (name == targetStateName) {
+				return match.state -> match.instance
 			}
 		}
 		throw new IllegalArgumentException("Not known id")

@@ -95,7 +95,7 @@ class XstsUppaalBackAnnotator extends AbstractUppaalBackAnnotator {
 								checkState(processLocationNames.size == 1)
 								val processLocationName = processLocationNames.head
 								val split = processLocationName.split("\\.")
-								val locationName = split.last
+								val locationName = split.lastOrNull
 								if (locationName == XstsNamings.stableLocationName) {
 									state = BackAnnotatorState.STATE_VARIABLES
 									localState = StableEnvironmentState.STABLE
@@ -120,7 +120,7 @@ class XstsUppaalBackAnnotator extends AbstractUppaalBackAnnotator {
 									for (variableValue : variableValues) {
 										val split = variableValue.split("=")
 										val id = split.head
-										val value = split.last
+										val value = split.lastOrNull
 										
 										switch (localState) {
 											case STABLE: {

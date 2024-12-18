@@ -46,7 +46,7 @@ class ImlArrayParser implements XstsArrayParser {
 						.reject[it.nullOrEmpty]) {
 					val split = element.deparenthesize.split(",", 2) // (1, (Map.of_list ~default:0 [(0, 736)]))
 					val index = split.head.trim // 1
-					val parsableValue = split.last.trim // (Map.of_list ~default:0 [(0, 736)])
+					val parsableValue = split.lastOrNull.trim // (Map.of_list ~default:0 [(0, 736)])
 					
 					val intIndex = Integer.parseInt(index)
 					val parsed = id.parseArray(parsableValue)
@@ -87,9 +87,9 @@ class ImlArrayParser implements XstsArrayParser {
 	}
 	
 	protected def String checkValue(String value) {
-		if (value.contains("\\.")) { // Checking enums
+		if (value.contains(".")) { // Checking enums
 			val typeLiteral = value.split("\\.")
-			val literal = typeLiteral.last
+			val literal = typeLiteral.lastOrNull
 			if (literal.startsWith(ENUM_LITERAL_PREFIX)) {
 				return literal.substring(ENUM_LITERAL_PREFIX.length)
 			}
